@@ -8,7 +8,7 @@ from torchvision import transforms, utils
 import torch
 # from skimage import io, transform
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 import argparse
 import os
@@ -28,7 +28,7 @@ import sklearn.utils
 import warnings
 warnings.filterwarnings("ignore")
 
-plt.pyplot.ion()  
+plt.ion()  
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -137,82 +137,83 @@ torch.manual_seed(1234)
 
 
 
-def get_output_size(conv2d: nn.Conv2d, input_size):
+# def get_output_size(conv2d: nn.Conv2d, input_size):
     
-    output_size = (input_size - conv2d.kernel_size[0] + 2*conv2d.padding[0]) / conv2d.stride[0] + 1
+#     output_size = (input_size - conv2d.kernel_size[0] + 2*conv2d.padding[0]) / conv2d.stride[0] + 1
     
-    return output_size
+#     return output_size
     
-class Model(nn.Module):
+# class Model(nn.Module):
     
-    def __init__(self):
-        super(Model, self).__init__()
+#     def __init__(self):
+#         super(Model, self).__init__()
         
-        input_size = 28 #W, H
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels = 1, out_channels = 8, 
-                kernel_size = 7, 
-                padding = args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=8),
-            nn.ReLU(),
-            #nn.MaxPool2d(kernel_size=2, stride=2)
-        )
+#         input_size = 28 #W, H
+#         self.layer1 = nn.Sequential(
+#             nn.Conv2d(in_channels = 1, out_channels = 8, 
+#                 kernel_size = 7, 
+#                 padding = args.padding, stride=args.stride),
+#             nn.BatchNorm2d(num_features=8),
+#             nn.ReLU(),
+#             #nn.MaxPool2d(kernel_size=2, stride=2)
+#         )
         
-        input_size = get_output_size(next(iter(self.layer1.children())), input_size)
+#         input_size = get_output_size(next(iter(self.layer1.children())), input_size)
         
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(in_channels=8, out_channels=16,
-                kernel_size=args.kernel_size,
-                padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=16),
-            nn.ReLU(),
-            #nn.MaxPool2d(2)
-        )
+#         self.layer2 = nn.Sequential(
+#             nn.Conv2d(in_channels=8, out_channels=16,
+#                 kernel_size=args.kernel_size,
+#                 padding=args.padding, stride=args.stride),
+#             nn.BatchNorm2d(num_features=16),
+#             nn.ReLU(),
+#             #nn.MaxPool2d(2)
+#         )
         
-        input_size = get_output_size(next(iter(self.layer2.children())), input_size)
+#         input_size = get_output_size(next(iter(self.layer2.children())), input_size)
 
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=24, 
-                kernel_size=args.kernel_size,
-                padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=24),
-            nn.ReLU(),
-            #nn.MaxPool2d(2)
-        )
+#         self.layer3 = nn.Sequential(
+#             nn.Conv2d(in_channels=16, out_channels=24, 
+#                 kernel_size=args.kernel_size,
+#                 padding=args.padding, stride=args.stride),
+#             nn.BatchNorm2d(num_features=24),
+#             nn.ReLU(),
+#             #nn.MaxPool2d(2)
+#         )
         
-        input_size = get_output_size(next(iter(self.layer3.children())), input_size)
+#         input_size = get_output_size(next(iter(self.layer3.children())), input_size)
         
-        self.layer4 = nn.Sequential(
-            nn.Conv2d(in_channels=24, out_channels=24,
-                      kernel_size=args.kernel_size,
-                      padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=24),
-            nn.ReLU(),
-            #nn.MaxPool2d(2)
-        )
+#         self.layer4 = nn.Sequential(
+#             nn.Conv2d(in_channels=24, out_channels=24,
+#                       kernel_size=args.kernel_size,
+#                       padding=args.padding, stride=args.stride),
+#             nn.BatchNorm2d(num_features=24),
+#             nn.ReLU(),
+#             #nn.MaxPool2d(2)
+#         )
         
-        input_size = get_output_size(next(iter(self.layer4.children())), input_size)
+#         input_size = get_output_size(next(iter(self.layer4.children())), input_size)
         
   
-        #self.drop = nn.Dropout2d(0.25)
+#         #self.drop = nn.Dropout2d(0.25)
 
-        self.fc1 = nn.Linear(in_features=24*round(input_size)**2, out_features=10)
+#         self.fc1 = nn.Linear(in_features=24*round(input_size)**2, out_features=10)
         
-    def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        out = self.layer4(out)
-        out = out.view(out.size(0), -1)
-        out = self.fc1(out)
-        #out = self.drop(out)
+#     def forward(self, x):
+#         out = self.layer1(x)
+#         out = self.layer2(out)
+#         out = self.layer3(out)
+#         out = self.layer4(out)
+#         out = out.view(out.size(0), -1)
+#         out = self.fc1(out)
+#         #out = self.drop(out)
         
-        out = torch.softmax(out, dim=1)
+#         out = torch.softmax(out, dim=1)
         
-        return out
+#         return out
 
 
-net = Model()
+Model = getattr(__import__(f'models.{args.model}', fromlist=['Model']), 'Model')
+net = Model(args)
 net.to(device)
 
 loss = nn.CrossEntropyLoss()
@@ -332,7 +333,7 @@ for epoch in range(number_of_epochs):
 
 #%%    
     
-f, (ax1, ax2, ax3) = plt.pyplot.subplots(3, 1, sharey=False)
+f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharey=False)
 
 ax1.set_title('1: Loss.  2: F1. 3: Accuracy.')
 
