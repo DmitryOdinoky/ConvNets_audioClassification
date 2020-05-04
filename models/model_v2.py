@@ -33,48 +33,48 @@ def get_output_size(conv2d: nn.Conv2d, input_size):
     
     return output_size
 
-# class ResNetBlock(nn.Module):
+class ResNetBlock(nn.Module):
     
-#     def __init__(self, in_channels):
-#         super().__init__()
+    def __init__(self, in_channels):
+        super().__init__()
         
-#         self.convs = torch.nn.Sequential(
-#             torch.nn.Conv2d(
-#                 in_channels,
-#                 out_channels=in_channels,
-#                 padding=1,
-#                 stride=1,
-#                 kernel_size = 3
-#             ),
+        self.convs = torch.nn.Sequential(
+            torch.nn.Conv2d(
+                in_channels,
+                out_channels=in_channels,
+                padding=1,
+                stride=1,
+                kernel_size = 3
+            ),
             
-#             torch.nn.ReLU(),
+            torch.nn.ReLU(),
             
-#             torch.nn.Conv2d(
-#                 in_channels,
-#                 out_channels=in_channels,
-#                 padding=1,
-#                 stride=1,
-#                 kernel_size = 3
-#             ),
+            torch.nn.Conv2d(
+                in_channels,
+                out_channels=in_channels,
+                padding=1,
+                stride=1,
+                kernel_size = 3
+            ),
             
-#             torch.nn.ReLU(),
+            torch.nn.ReLU(),
             
-#             torch.nn.Conv2d(
-#                 in_channels,
-#                 out_channels=in_channels,
-#                 padding=1,
-#                 stride=1,
-#                 kernel_size = 3
-#             )
+            torch.nn.Conv2d(
+                in_channels,
+                out_channels=in_channels,
+                padding=1,
+                stride=1,
+                kernel_size = 3
+            )
             
         
-#         )
+        )
         
-#     def forward(self, x):
-#         out = self.convs.forward(x)
-#         out = out + x
+    def forward(self, x):
+        out = self.convs.forward(x)
+        out = out + x
         
-#         return out
+        return out
     
     
     
@@ -93,7 +93,7 @@ class Model(nn.Module):
             #nn.MaxPool2d(kernel_size=2, stride=2)
         )
         
-        # self.resBlock1 = ResNetBlock(in_channels=8)
+        self.resBlock1 = ResNetBlock(in_channels=8)
         
         
         input_size = get_output_size(next(iter(self.layer1.children())), input_size)
@@ -138,7 +138,7 @@ class Model(nn.Module):
         
     def forward(self, x):
         out = self.layer1.forward(x)
-        #out = self.resBlock1.forward(out)
+        out = self.resBlock1.forward(out)
         out = self.layer2.forward(out)
         out = self.layer3.forward(out)
         out = self.layer4.forward(out)

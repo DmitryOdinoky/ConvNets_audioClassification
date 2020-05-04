@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+import datetime
+
 from torch.utils.data import Dataset, DataLoader
 import torchvision
 from torchvision import transforms, utils
@@ -33,26 +35,27 @@ plt.ion()
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
+
 #%%
 
 parser = argparse.ArgumentParser(description='Keras Fashion MNIST Example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-parser.add_argument("--model", type=str, default='model_v1', help="model:model_v1")
+parser.add_argument("--model", type=str, default='model_v2', help="model:model_v1")
 
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize', type=int, default=256,
+parser.add_argument('--batchsize', type=int, default=512,
                     help='input batch size for training')
 
 parser.add_argument(
     '--batch_valid', type=int, default=256,
     help='Steps per epoch during validation')
 
-parser.add_argument('--epochs', type=int, default=3,
+parser.add_argument('--epochs', type=int, default=10,
                     help='number of epochs to train')
 
 parser.add_argument('--learning_rate', type=float, default=0.01,
@@ -67,9 +70,9 @@ parser.add_argument('--padding', type=int, default=1,
 parser.add_argument('--stride', type=int, default=2,
                     help='stride')
 
-parser.add_argument(
-    '--decay', type=float, default=0.8,
-    help='LR decay every 10 epochs')
+# parser.add_argument(
+#     '--decay', type=float, default=0.8,
+#     help='LR decay every 10 epochs')
 # parser.add_argument('--warmup-epochs', type=float, default=5,
 #                     help='number of warmup epochs')
 # parser.add_argument('--momentum', type=float, default=0.9,
@@ -82,23 +85,10 @@ args = parser.parse_args()
 # Checkpoints will be written in the log directory.
 args.checkpoint_format = os.path.join(args.log_dir, 'checkpoint-{epoch}.h5')
 
+
 #%%
 
-# def output_label(label):
-#     output_mapping = {
-#                  0: "T-shirt/Top",
-#                  1: "Trouser",
-#                  2: "Pullover",
-#                  3: "Dress",
-#                  4: "Coat", 
-#                  5: "Sandal", 
-#                  6: "Shirt",
-#                  7: "Sneaker",
-#                  8: "Bag",
-#                  9: "Ankle Boot"
-#                  }
-#     input = (label.item() if type(label) == torch.Tensor else label)
-#     return output_mapping[input]
+todays_date =  str(datetime.datetime.now().date()) + str(datetime.datetime.now().time()).replace(':','').replace('.','') + str(args.model)
 
 #%%
     
@@ -127,7 +117,7 @@ train_loader = torch.utils.data.DataLoader(
 test_loader = torch.utils.data.DataLoader(
     test_dataset,
     shuffle=False,
-    batch_size=args.batchsize)
+    batch_size=args.batch_valid)
 
 
 
@@ -135,81 +125,6 @@ test_loader = torch.utils.data.DataLoader(
 
 torch.manual_seed(1234)
 
-
-
-# def get_output_size(conv2d: nn.Conv2d, input_size):
-    
-#     output_size = (input_size - conv2d.kernel_size[0] + 2*conv2d.padding[0]) / conv2d.stride[0] + 1
-    
-#     return output_size
-    
-# class Model(nn.Module):
-    
-#     def __init__(self):
-#         super(Model, self).__init__()
-        
-#         input_size = 28 #W, H
-#         self.layer1 = nn.Sequential(
-#             nn.Conv2d(in_channels = 1, out_channels = 8, 
-#                 kernel_size = 7, 
-#                 padding = args.padding, stride=args.stride),
-#             nn.BatchNorm2d(num_features=8),
-#             nn.ReLU(),
-#             #nn.MaxPool2d(kernel_size=2, stride=2)
-#         )
-        
-#         input_size = get_output_size(next(iter(self.layer1.children())), input_size)
-        
-#         self.layer2 = nn.Sequential(
-#             nn.Conv2d(in_channels=8, out_channels=16,
-#                 kernel_size=args.kernel_size,
-#                 padding=args.padding, stride=args.stride),
-#             nn.BatchNorm2d(num_features=16),
-#             nn.ReLU(),
-#             #nn.MaxPool2d(2)
-#         )
-        
-#         input_size = get_output_size(next(iter(self.layer2.children())), input_size)
-
-#         self.layer3 = nn.Sequential(
-#             nn.Conv2d(in_channels=16, out_channels=24, 
-#                 kernel_size=args.kernel_size,
-#                 padding=args.padding, stride=args.stride),
-#             nn.BatchNorm2d(num_features=24),
-#             nn.ReLU(),
-#             #nn.MaxPool2d(2)
-#         )
-        
-#         input_size = get_output_size(next(iter(self.layer3.children())), input_size)
-        
-#         self.layer4 = nn.Sequential(
-#             nn.Conv2d(in_channels=24, out_channels=24,
-#                       kernel_size=args.kernel_size,
-#                       padding=args.padding, stride=args.stride),
-#             nn.BatchNorm2d(num_features=24),
-#             nn.ReLU(),
-#             #nn.MaxPool2d(2)
-#         )
-        
-#         input_size = get_output_size(next(iter(self.layer4.children())), input_size)
-        
-  
-#         #self.drop = nn.Dropout2d(0.25)
-
-#         self.fc1 = nn.Linear(in_features=24*round(input_size)**2, out_features=10)
-        
-#     def forward(self, x):
-#         out = self.layer1(x)
-#         out = self.layer2(out)
-#         out = self.layer3(out)
-#         out = self.layer4(out)
-#         out = out.view(out.size(0), -1)
-#         out = self.fc1(out)
-#         #out = self.drop(out)
-        
-#         out = torch.softmax(out, dim=1)
-        
-#         return out
 
 
 Model = getattr(__import__(f'models.{args.model}', fromlist=['Model']), 'Model')
@@ -226,16 +141,16 @@ number_of_epochs = args.epochs
 
 #np.random.seed(32) # set seed value so that the results are reproduceable
 
-var_dict = {'train_loss': [],
+var_dict = {'iterationz': [],
+            'train_loss': [],
             'test_loss': [],
             'train_accuracies': [],
-            'iterationz': [],
-            'train_f1_scores': [],
-            'test_f1_scores': [],
             'test_accuracies': [],
+            'train_f1_scores': [],
+            'test_f1_scores': []
             }
 
-meta_counter = 0
+
 counter = 0
 stage = ''
 
@@ -318,14 +233,17 @@ for epoch in range(number_of_epochs):
                 optimizer.step()
                 
         if stage == 'train':
+   
            var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
            var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
            var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
             
         else:
-           var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
-           var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
-           var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
+           
+
+            var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
+            var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
+            var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
         
     var_dict['iterationz'].append(counter)
     
@@ -353,6 +271,30 @@ ax2.set_xticks([])
 
 
 ax1.legend((sc1, sc2), ('test', 'train'), loc='upper right', shadow=True)
+
+#%%
+
+attributes = list(var_dict.keys())
+index = var_dict['iterationz']
+
+lst = []
+
+for key in var_dict:
+    
+    lst.append(var_dict[key])
+      
+
+transposed = list(map(list, zip(*lst)))
+        
+df = pd.DataFrame(transposed ,index=index, columns=attributes)  
+df = df.drop(columns=['iterationz'],axis=0)
+  
+df.to_excel(f'output_ver_{todays_date}.xlsx')
+
+
+
+
+
 
 #%%
 
