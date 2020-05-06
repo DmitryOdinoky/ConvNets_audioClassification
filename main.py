@@ -48,14 +48,14 @@ parser.add_argument("--model", type=str, default='model_v2', help="model:model_v
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize', type=int, default=512,
+parser.add_argument('--batchsize', type=int, default=256,
                     help='input batch size for training')
 
 parser.add_argument(
     '--batch_valid', type=int, default=256,
     help='Steps per epoch during validation')
 
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--epochs', type=int, default=15,
                     help='number of epochs to train')
 
 parser.add_argument('--learning_rate', type=float, default=0.01,
@@ -131,7 +131,7 @@ Model = getattr(__import__(f'models.{args.model}', fromlist=['Model']), 'Model')
 net = Model(args)
 net.to(device)
 
-loss = nn.CrossEntropyLoss()
+
 
 #learning_rate =
 optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)

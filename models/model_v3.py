@@ -66,7 +66,9 @@ class ResNetBlock(nn.Module):
                 padding=1,
                 stride=1,
                 kernel_size = 3
-            )
+            ),
+            
+            nn.BatchNorm2d(num_features=in_channels)
             
             
             
@@ -114,7 +116,9 @@ class ResNetBottleNeck(nn.Module):
                 padding=1,
                 stride=1,
                 kernel_size = 3
-            )
+            ),
+            
+            nn.BatchNorm2d(num_features=out_channels)
             
          
             
