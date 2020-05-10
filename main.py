@@ -42,7 +42,7 @@ parser = argparse.ArgumentParser(description='Keras Fashion MNIST Example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-parser.add_argument("--model", type=str, default='model_v2', help="model:model_v1")
+parser.add_argument("--model", type=str, default='model_v3', help="model:model_v1")
 
 
 parser.add_argument('--log-dir', default='./logs',
@@ -55,7 +55,7 @@ parser.add_argument(
     '--batch_valid', type=int, default=256,
     help='Steps per epoch during validation')
 
-parser.add_argument('--epochs', type=int, default=15,
+parser.add_argument('--epochs', type=int, default=3,
                     help='number of epochs to train')
 
 parser.add_argument('--learning_rate', type=float, default=0.01,
@@ -123,7 +123,7 @@ test_loader = torch.utils.data.DataLoader(
 
 #%%
 
-torch.manual_seed(1234)
+#torch.manual_seed(1234)
 
 
 
