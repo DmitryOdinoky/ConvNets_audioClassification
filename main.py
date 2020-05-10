@@ -88,7 +88,9 @@ args.checkpoint_format = os.path.join(args.log_dir, 'checkpoint-{epoch}.h5')
 
 #%%
 
-todays_date =  str(datetime.datetime.now().date()) + str(datetime.datetime.now().time()).replace(':','').replace('.','') + str(args.model)
+this_time = str(datetime.datetime.now().time()).replace(':','-').replace('.','-')
+this_date = str(datetime.datetime.now().date())
+todays_date = this_date + '_'  + this_time[:-7] + '_' + str(args.model)
 
 #%%
     
