@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+
+
 import datetime
 
 from torch.utils.data import Dataset, DataLoader
@@ -28,6 +30,9 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 import sklearn.utils
 
 import warnings
+
+from data_class import simple_Dataset
+
 warnings.filterwarnings("ignore")
 
 plt.ion()  
@@ -38,21 +43,21 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #%%
 
-parser = argparse.ArgumentParser(description='Keras Fashion MNIST Example',
+parser = argparse.ArgumentParser(description='Self-made audio dataset example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-parser.add_argument("--model", type=str, default='model_v3', help="model:model_v1")
+parser.add_argument("--model", type=str, default='model_v5', help="model:model_v1")
 
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize', type=int, default=256,
+parser.add_argument('--batchsize_train', type=int, default=10,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batch_valid', type=int, default=256,
+    '--batchsize_valid', type=int, default=33,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=3,
@@ -95,31 +100,19 @@ todays_date = this_date + '_'  + this_time[:-7] + '_' + str(args.model)
 #%%
     
     
-train_dataset = torchvision.datasets.FashionMNIST(
-    "./data", download=True, 
-    transform = transforms.Compose([
-        transforms.ToTensor()
-        
-        ])
-)
+train_loader = simple_Dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
+                               batch_size = args.batchsize_train,
+                               path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+                               train = True)
 
 
-test_dataset = torchvision.datasets.FashionMNIST(
-    "./data", download=True, train=False, transform = transforms.Compose([
-        transforms.ToTensor()
-        ])
-    
-)  
+test_loader = simple_Dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
+                               batch_size = args.batchsize_valid,
+                               path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+                               train = False)
 
-
-train_loader = torch.utils.data.DataLoader(
-    train_dataset,
-    shuffle=True,
-    batch_size = args.batchsize)
-test_loader = torch.utils.data.DataLoader(
-    test_dataset,
-    shuffle=False,
-    batch_size=args.batch_valid)
+train_loader.make_pseudo_memmaps()
+test_loader.make_pseudo_memmaps()
 
 
 
@@ -129,7 +122,7 @@ test_loader = torch.utils.data.DataLoader(
 
 
 
-Model = getattr(__import__(f'models.{args.model}', fromlist=['Model']), 'Model')
+Model = getattr(__import__(f'models_4_audio.{args.model}', fromlist=['Model']), 'Model')
 net = Model(args)
 net.to(device)
 
