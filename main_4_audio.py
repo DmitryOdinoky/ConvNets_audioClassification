@@ -53,11 +53,11 @@ parser.add_argument("--model", type=str, default='model_v5', help="model:model_v
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=10,
+parser.add_argument('--batchsize_train', type=int, default=13,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_valid', type=int, default=33,
+    '--batchsize_valid', type=int, default=13,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=3,

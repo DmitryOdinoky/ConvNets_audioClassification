@@ -151,7 +151,7 @@ class Model(nn.Module):
     def __init__(self, args):
         super(Model, self).__init__()
         
-        input_size = 28 #W, H
+        input_size = 60 #W, H
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels = 1, out_channels = 8, 
                 kernel_size = 7, 
@@ -203,7 +203,7 @@ class Model(nn.Module):
   
         #self.drop = nn.Dropout2d(0.25)
 
-        self.fc1 = nn.Linear(in_features=30*round(input_size)**2, out_features=10)
+        self.fc1 = nn.Linear(in_features=192*round(input_size)**2, out_features=10)
         
     def forward(self, x):
         out = self.layer1.forward(x)
