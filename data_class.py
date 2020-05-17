@@ -63,7 +63,7 @@ class simple_Dataset(object):
            S = librosa.stft(x, n_fft=n_fft, hop_length=hop_length)
            S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
            
-           self.spectrogram_array.append(S[:,0:61])
+           self.spectrogram_array.append(S[:,0:60])
            # X = librosa.stft(x, n_fft=n_fft, hop_length=hop_length)
            # X = librosa.feature.melspectrogram(x, sr=fs, n_mels=128,fmax=20000)
            # S = librosa.amplitude_to_db(abs(X),ref=np.max,top_db=120)
