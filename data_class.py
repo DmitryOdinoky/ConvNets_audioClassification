@@ -121,7 +121,10 @@ class fsd_dataset(object):
            n_fft = 1023
            category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
            
-           S = librosa.stft(x, n_fft=n_fft, hop_length=hop_length)
+           #S = librosa.stft(x, n_fft=n_fft, hop_length=hop_length)
+           S = librosa.feature.melspectrogram(x, sr=sr, n_mels=128,fmax=20000)
+           
+           
            S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
            
            self.spectrogram_array.append(S[:,0:80])

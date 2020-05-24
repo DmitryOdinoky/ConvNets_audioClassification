@@ -242,7 +242,6 @@ for epoch in range(number_of_epochs):
            var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
            var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
            
-           
             
         else:
            
