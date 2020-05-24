@@ -42,18 +42,18 @@ parser = argparse.ArgumentParser(description='Keras Fashion MNIST Example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-parser.add_argument("--model", type=str, default='model_v3', help="model:model_v1")
+parser.add_argument("--model", type=str, default='model_v4_adaptive', help="blahblah")
 
 
 parser.add_argument('--log-dir', default='./logs',
-                    help='tensorboard log directory')
+                    help='blahblah')
 
 parser.add_argument('--batchsize', type=int, default=256,
                     help='input batch size for training')
 
 parser.add_argument(
     '--batch_valid', type=int, default=256,
-    help='Steps per epoch during validation')
+    help='blahblah')
 
 parser.add_argument('--epochs', type=int, default=3,
                     help='number of epochs to train')
@@ -116,6 +116,8 @@ train_loader = torch.utils.data.DataLoader(
     train_dataset,
     shuffle=True,
     batch_size = args.batchsize)
+
+
 test_loader = torch.utils.data.DataLoader(
     test_dataset,
     shuffle=False,
@@ -239,6 +241,8 @@ for epoch in range(number_of_epochs):
            var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
            var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
            var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
+           
+           
             
         else:
            

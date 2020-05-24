@@ -9,7 +9,7 @@ import torchvision
 from torchvision import transforms, utils
 
 # import os
-import torch
+
 # from skimage import io, transform
 import numpy as np
 import matplotlib.pyplot as plt
@@ -25,13 +25,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+import torchnet as tnt
+
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 import sklearn.utils
 
 import warnings
 
-from data_class import simple_Dataset
+from data_class import simple_Dataset, fsd_dataset
 
 warnings.filterwarnings("ignore")
 
@@ -47,17 +49,17 @@ parser = argparse.ArgumentParser(description='Self-made audio dataset example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 
-parser.add_argument("--model", type=str, default='model_v5', help="model:model_v1")
+parser.add_argument("--model", type=str, default='model_v6_adaptive', help="model:model_v")
 
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=13,
+parser.add_argument('--batchsize_train', type=int, default=80,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_valid', type=int, default=13,
+    '--batchsize_test', type=int, default=80,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=3,
@@ -91,28 +93,30 @@ args = parser.parse_args()
 args.checkpoint_format = os.path.join(args.log_dir, 'checkpoint-{epoch}.h5')
 
 
-#%%
 
-this_time = str(datetime.datetime.now().time()).replace(':','-').replace('.','-')
-this_date = str(datetime.datetime.now().date())
-todays_date = this_date + '_'  + this_time[:-7] + '_' + str(args.model)
 
 #%%
+
+
+
     
     
-train_loader = simple_Dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
-                               batch_size = args.batchsize_train,
+train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
                                train = True)
 
 
-test_loader = simple_Dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
-                               batch_size = args.batchsize_valid,
+test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
                                train = False)
 
-train_loader.make_pseudo_memmaps()
-test_loader.make_pseudo_memmaps()
+train_loader = torch.utils.data.DataLoader(train_dataset,
+                            shuffle=True,
+                            batch_size = args.batchsize_train)
+
+test_loader = torch.utils.data.DataLoader(test_dataset,
+                            shuffle=False,
+                            batch_size = args.batchsize_test)
 
 
 
@@ -132,9 +136,50 @@ net.to(device)
 optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
 
 
+meter_loss = tnt.meter.AverageValueMeter()
+classerr = tnt.meter.ClassErrorMeter(accuracy=True)
+confusion_meter = tnt.meter.ConfusionMeter(10, normalized=True) # 10 means number of clases? 
+
+def reset_meters():
+    classerr.reset()
+    meter_loss.reset()
+    confusion_meter.reset()
+    
+    
+def write_report(var_dict, string):
+    
+    path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/ConvNets_audioClassification/reports_out'
+    
+    postfix = string
+    this_time = str(datetime.datetime.now().time()).replace(':','-').replace('.','-')
+    this_date = str(datetime.datetime.now().date())
+    todays_date = this_date + '_time_'  + this_time[:-7] + '_' + str(args.model)
+    
+    attributes = list(var_dict.keys())
+    index = var_dict['iterationz']
+    
+    lst = []
+    
+    for key in var_dict:
+    
+        lst.append(var_dict[key])
+      
+    
+    transposed = list(map(list, zip(*lst)))
+    
+    df = pd.DataFrame(transposed ,index=index, columns=attributes)  
+    df = df.drop(columns=['iterationz'],axis=0)
+      
+    df.to_excel(f'output_ver_{todays_date}_{postfix}.xlsx')
+    
+    
+    
+    
+
+
 number_of_epochs = args.epochs
 
-#np.random.seed(32) # set seed value so that the results are reproduceable
+
 
 var_dict = {'iterationz': [],
             'train_loss': [],
@@ -145,14 +190,37 @@ var_dict = {'iterationz': [],
             'test_f1_scores': []
             }
 
+meters = {
+            'train_loss': tnt.meter.AverageValueMeter(),
+            'test_loss': tnt.meter.AverageValueMeter(),
+            
+            'train_APMeter': tnt.meter.APMeter(),
+            'test_APMeter': tnt.meter.APMeter(),
+            
+            'train_mAPeter': tnt.meter.mAPMeter(),
+            'test_mAPeter': tnt.meter.mAPMeter(),
+
+            'train_confusion': tnt.meter.ConfusionMeter(10, normalized=True), # 10 means number of clases? ,
+            'test_confusion': tnt.meter.ConfusionMeter(10, normalized=True)     
+            }
+
 
 counter = 0
 stage = ''
 
+
+
 for epoch in range(number_of_epochs):
     
+    for key in meters.keys():
+        meters[key].reset()
+        
+              
     counter += 1
     print(f'Epoch #{counter} started')
+    
+    
+    iter_epoch = 0
     
     for loader in [train_loader, test_loader]:
         
@@ -160,16 +228,28 @@ for epoch in range(number_of_epochs):
             stage = 'train'
         else:
             stage = 'test'
+            
+        var_dict_epoch = {
+            'iterationz': [] ,
+            'loss_epoch': [] ,
+            'accuracy_epoch': [] ,
+            'f1_epoch': []
+            
+            }    
         
-        loss_epoch = []
-        accuracy_epoch = []
-        f1_epoch = []
+        # counter_epoch = []
+        # loss_epoch = []
+        # accuracy_epoch = []
+        # f1_epoch = []
         
         helper = 0
         
         for batch in loader:
             
             helper += 1
+             
+            iter_epoch += 1
+            
             # print(helper)
             
             images, labels = batch
@@ -192,7 +272,7 @@ for epoch in range(number_of_epochs):
             loss = torch.mean(-y*torch.log(y_prim))
             
             #loss = loss(y_prim.item(), labels)
-            loss_epoch.append(loss.item())
+            var_dict_epoch['loss_epoch'].append(loss.item())
 
             _, predict_y = torch.max(y_prim, 1)
             
@@ -214,10 +294,13 @@ for epoch in range(number_of_epochs):
             
             f1 = sklearn.metrics.f1_score(train_y.data, predict_y.data, average='macro')
             
-            accuracy_epoch.append(accuracy)
-            f1_epoch.append(f1.item())
+            var_dict_epoch['accuracy_epoch'].append(accuracy)
+            var_dict_epoch['f1_epoch'].append(f1.item())
+            var_dict_epoch['iterationz'].append(iter_epoch)
+           
             
-            if not (helper % 10):
+            
+            if not (helper % 1):
                 print(f"Iteration: {helper}, Loss: {loss.item()}, Accuracy: {accuracy*100}%")
             
             
@@ -227,18 +310,30 @@ for epoch in range(number_of_epochs):
                 loss.backward()
                 optimizer.step()
                 
+        
+                
         if stage == 'train':
    
-           var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
-           var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
-           var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
-            
+           var_dict[f'{stage}_loss'].append(np.average(var_dict_epoch['loss_epoch']))
+           var_dict[f'{stage}_accuracies'].append(np.average(var_dict_epoch['accuracy_epoch']))
+           var_dict[f'{stage}_f1_scores'].append(np.average(var_dict_epoch['f1_epoch']))
+           
+           #meters[f'{stage}_loss'].add(np.median(tonumpy(var_dict_epoch['loss'])))
+             
+
+                                       
         else:
            
 
-            var_dict[f'{stage}_loss'].append(np.average(loss_epoch))
-            var_dict[f'{stage}_accuracies'].append(np.average(accuracy_epoch))
-            var_dict[f'{stage}_f1_scores'].append(np.average(f1_epoch))
+            var_dict[f'{stage}_loss'].append(np.average(var_dict_epoch['loss_epoch']))
+            var_dict[f'{stage}_accuracies'].append(np.average(var_dict_epoch['accuracy_epoch']))
+            var_dict[f'{stage}_f1_scores'].append(np.average(var_dict_epoch['f1_epoch']))
+ 
+            #meters[f'{stage}_loss'].add(np.median(tonumpy(var_dict_epoch['loss'])))
+
+        #write_report(var_dict_epoch, f'per_epoch_{stage}')
+            
+        
         
     var_dict['iterationz'].append(counter)
     
@@ -269,28 +364,7 @@ ax1.legend((sc1, sc2), ('test', 'train'), loc='upper right', shadow=True)
 
 #%%
 
-attributes = list(var_dict.keys())
-index = var_dict['iterationz']
+write_report(var_dict, 'general')
 
-lst = []
-
-for key in var_dict:
-    
-    lst.append(var_dict[key])
-      
-
-transposed = list(map(list, zip(*lst)))
-        
-df = pd.DataFrame(transposed ,index=index, columns=attributes)  
-df = df.drop(columns=['iterationz'],axis=0)
-  
-df.to_excel(f'output_ver_{todays_date}.xlsx')
-
-
-
-
-
-
-#%%
 
 
