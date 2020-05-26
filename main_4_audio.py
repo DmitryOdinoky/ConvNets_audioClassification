@@ -115,7 +115,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset,
                             batch_size = args.batchsize_train)
 
 test_loader = torch.utils.data.DataLoader(test_dataset,
-                            shuffle=False,
+                            shuffle=True,
                             batch_size = args.batchsize_test)
 
 
