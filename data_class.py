@@ -46,12 +46,12 @@ class fsd_dataset(object):
         
         self.path = path
 
-        self.time_window = 80
+        self.time_window = 140
                 
 
         
         for file in tqdm(self.dataset_frame['fname']):
-           S, sr = librosa.load(self.path + file, sr=16000, mono=True)
+           S, sr = librosa.load(self.path + file, sr=44100, mono=True)
            # hop_length = 512
            hop_length = 512
            n_fft = 1023
@@ -62,14 +62,14 @@ class fsd_dataset(object):
            S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
 
            
-           #S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
+           S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
            
            
-           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=24,fmax=8000)
+           #S = librosa.feature.melspectrogram(S, sr=sr, n_mels=24,fmax=20000)
            
-           S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
+           #S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
            
-           #S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
+           S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
            
            #S = abs(S)
           

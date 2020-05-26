@@ -55,17 +55,17 @@ parser.add_argument("--model", type=str, default='model_v6_adaptive', help="mode
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=60,
+parser.add_argument('--batchsize_train', type=int, default=80,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_test', type=int, default=60,
+    '--batchsize_test', type=int, default=20,
     help='Steps per epoch during validation')
 
-parser.add_argument('--epochs', type=int, default=3,
+parser.add_argument('--epochs', type=int, default=10,
                     help='number of epochs to train')
 
-parser.add_argument('--learning_rate', type=float, default=0.01,
+parser.add_argument('--learning_rate', type=float, default=0.001,
                     help='learning rate for a single GPU')
 
 parser.add_argument('--kernel_size', type=int, default=3,
@@ -102,13 +102,13 @@ args.checkpoint_format = os.path.join(args.log_dir, 'checkpoint-{epoch}.h5')
     
     
 train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
-                               path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
-                               train = True)
+                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+                                train = True)
 
 
 test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
-                               path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
-                               train = False)
+                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+                                train = False)
 
 train_loader = torch.utils.data.DataLoader(train_dataset,
                             shuffle=True,
@@ -118,6 +118,28 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
                             shuffle=True,
                             batch_size = args.batchsize_test)
 
+
+#%%
+
+# =============================================================================
+# train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/train_post_competition.csv',
+#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
+#                                 train = True)
+# 
+# 
+# test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/test_post_competition.csv',
+#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
+#                                 train = False)
+# 
+# train_loader = torch.utils.data.DataLoader(train_dataset,
+#                             shuffle=True,
+#                             batch_size = args.batchsize_train)
+# 
+# test_loader = torch.utils.data.DataLoader(test_dataset,
+#                             shuffle=False,
+#                             batch_size = args.batchsize_test)
+# 
+# =============================================================================
 
 
 #%%
