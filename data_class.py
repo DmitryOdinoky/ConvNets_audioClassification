@@ -11,7 +11,8 @@ from tqdm import tqdm
 import librosa
 
 
-
+import functools
+import operator
             
             
             
@@ -72,19 +73,26 @@ class fsd_dataset(object):
            categories = []
           
            
-           for idx in range(0, len(S.T)//self.time_window):
+           for idx in range(0, len(S[0])//self.time_window-1):
             
-               samples.append(S[idx*self.time_window:(idx+1)*self.time_window])    
+               samples.append(S[:,idx*self.time_window:(idx+1)*self.time_window])    
                categories.append(category.iloc[0])
         
-        
-           # self.spectrogram_array.append(samples)
-           # self.metadata_array.append(categories)
+           #samples = functools.reduce(operator.iconcat, samples, [])
+           
+           
+           
+           
+           self.spectrogram_array.append(samples)
+           self.metadata_array.append(categories)
            
            self.all_samples.append((samples,categories))
            
-           self.spectrogram_array.append(S[:,0:80])
-           self.metadata_array.append(category.iloc[0])   
+           #self.spectrogram_array.append(S[:,0:80])
+           #self.metadata_array.append(category.iloc[0])   
+        
+        self.spectrogram_array = functools.reduce(operator.iconcat, self.spectrogram_array, [])
+        self.metadata_array = functools.reduce(operator.iconcat, self.metadata_array, [])
     
         
     def __len__(self):
@@ -94,14 +102,20 @@ class fsd_dataset(object):
        if torch.is_tensor(idx):
            idx = idx.tolist()
        
-       spec, class_idx = self.all_samples[idx]
+       #spec, class_idx = self.all_samples[idx]
     
+       #x = torch.Tensor(self.spectrogram_array[idx]).unsqueeze(0)
+       #y = torch.Tensor(np.expand_dims(self.metadata_array[idx], axis=0))
+       
        x = torch.Tensor(self.spectrogram_array[idx]).unsqueeze(0)
        y = torch.Tensor(np.expand_dims(self.metadata_array[idx], axis=0))
-       # x = torch.Tensor(spec.unsqueeze(0)
-       # y = torch.Tensor(np.expand_dims(class_idx, axis=0))
+        
+       #x = torch.Tensor(spectrogram_array).transpose(1,2).unsqueeze(1)
+       #y = torch.Tensor(np.expand_dims(metadata_array, axis=1))
        
        return x, y
+
+
 
 
 

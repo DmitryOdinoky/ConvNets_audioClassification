@@ -55,11 +55,11 @@ parser.add_argument("--model", type=str, default='model_v6_adaptive', help="mode
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=80,
+parser.add_argument('--batchsize_train', type=int, default=60,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_test', type=int, default=80,
+    '--batchsize_test', type=int, default=60,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=3,
@@ -148,7 +148,7 @@ def reset_meters():
     
 def write_report(var_dict, string):
     
-    path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/ConvNets_audioClassification/reports_out'
+    path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/ConvNets_audioClassification/reports_out/'
     
     postfix = string
     this_time = str(datetime.datetime.now().time()).replace(':','-').replace('.','-')
@@ -331,7 +331,7 @@ for epoch in range(number_of_epochs):
  
             #meters[f'{stage}_loss'].add(np.median(tonumpy(var_dict_epoch['loss'])))
 
-        #write_report(var_dict_epoch, f'per_epoch_{stage}')
+        write_report(var_dict_epoch, f'per_epoch_{stage}')
             
         
         
