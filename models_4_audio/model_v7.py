@@ -35,7 +35,7 @@ from torchvision.models import DenseNet, ResNet
 
 #         self.backbone_model: DenseNet = torchvision.models.densenet121(pretrained=True)
 #         # TODO savakt klasu skaitu no dataset vai args
-#         self.fc1 = nn.Linear(in_features=self.backbone_model.classifier.in_features, out_features=10) # muzikas instrumentu klases
+#         self.fc1 = nn.Linear(in_features=self.backbone_model.classifier.in_features, out_features=args.classes_amount) # muzikas instrumentu klases
 
 #     def forward(self, x):
 
@@ -68,7 +68,7 @@ class Model(nn.Module):
             self.backbone_model.layer4,
         )
         # TODO savakt klasu skaitu no dataset vai args
-        self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=10) # muzikas instrumentu klases
+        self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=args.classes_amount) # muzikas instrumentu klases
 
     def forward(self, x):
 
