@@ -78,6 +78,7 @@ parser.add_argument('--padding', type=int, default=1,
 parser.add_argument('--stride', type=int, default=2,
                     help='stride')
 
+
 # parser.add_argument(
 #     '--decay', type=float, default=0.8,
 #     help='LR decay every 10 epochs')
@@ -142,6 +143,9 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
                             batch_size = args.batchsize_test)
 
 
+parser.add_argument('--classes_amount', type=int, default=train_dataset.labels,
+                    help='classes_amount')
+
 
 #%%
 
@@ -159,14 +163,9 @@ net.to(device)
 optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
 
 
-meter_loss = tnt.meter.AverageValueMeter()
-classerr = tnt.meter.ClassErrorMeter(accuracy=True)
-confusion_meter = tnt.meter.ConfusionMeter(10, normalized=True) # 10 means number of clases? 
 
-def reset_meters():
-    classerr.reset()
-    meter_loss.reset()
-    confusion_meter.reset()
+
+
     
     
 def write_report(var_dict, string):
