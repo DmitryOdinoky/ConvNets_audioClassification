@@ -51,19 +51,19 @@ parser = argparse.ArgumentParser(description='Self-made audio dataset example',
 
 #parser.add_argument("--model", type=str, default='model_v7', help="model:model_v")
 
-parser.add_argument("--model", type=str, default='model_v6_adaptive', help="model:model_v")
+parser.add_argument("--model", type=str, default='model_v7', help="model:model_v")
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=80,
+parser.add_argument('--batchsize_train', type=int, default=57,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_test', type=int, default=20,
+    '--batchsize_test', type=int, default=57,
     help='Steps per epoch during validation')
 
-parser.add_argument('--epochs', type=int, default=10,
+parser.add_argument('--epochs', type=int, default=5,
                     help='number of epochs to train')
 
 parser.add_argument('--learning_rate', type=float, default=0.01,
@@ -77,6 +77,9 @@ parser.add_argument('--padding', type=int, default=1,
 
 parser.add_argument('--stride', type=int, default=2,
                     help='stride')
+
+parser.add_argument('--classes_amount', type=int, default=10,
+                    help='wtf')
 
 
 # parser.add_argument(
@@ -121,31 +124,34 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
                             batch_size = args.batchsize_test)
 
 
+
+
+
 #%%
 
+# =============================================================================
 # train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/train_post_competition.csv',
 #                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
 #                                 train = True)
-
-
+# 
+# 
 # test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/test_post_competition.csv',
 #                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
 #                                 train = False)
-
+# 
 # train_loader = torch.utils.data.DataLoader(train_dataset,
 #                             shuffle=True,
 #                             batch_size = args.batchsize_train)
-
+# 
 # test_loader = torch.utils.data.DataLoader(test_dataset,
 #                             shuffle=True,
 #                             batch_size = args.batchsize_test)
-
-
-#%%
-
-
-parser.add_argument('--classes_amount', type=int, default=train_dataset.labels,
-                    help='classes_amount')
+# 
+# 
+# 
+# parser.add_argument('--classes_amount', type=int, default=train_dataset.labels,
+#                     help='')
+# =============================================================================
 
 
 #%%
@@ -298,8 +304,9 @@ for epoch in range(number_of_epochs):
             meters[f'{stage}_tnt_loss'].add(loss.item())
             
            
-            confusion_meter: tnt.meter.ConfusionMeter = meters[f'{stage}_confusion']
-            confusion_meter.add(y_prim.to('cpu').data.numpy(), labels.to('cpu').data.numpy())
+            #confusion_meter: tnt.meter.ConfusionMeter = meters[f'{stage}_confusion']
+            
+            #meters[f'{stage}_confusion'].add(y_prim.detach(), labels.detach())
             
  
 
@@ -369,7 +376,7 @@ for epoch in range(number_of_epochs):
             #meters[f'{stage}_mAPMeter'].add(meters[f'{stage}_mAPMeter'].value())
             
             
-        #confusion_meter = confusion[f'{stage}_confusion']
+        #confusion_matrix = meters[f'{stage}_confusion'].value()
         
         #confusion_matrix = confusion_meter.value() 
         
@@ -391,15 +398,15 @@ f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharey=False)
 
 ax1.set_title('1: Loss.  2: Accuracy. 3: F1. ')
 
-sc1 = ax1.plot(var_dict['iterationz'], var_dict['train_loss'])
-sc2 = ax1.plot(var_dict['iterationz'],  var_dict['test_loss'])
+sc1 = ax1.scatter(var_dict['iterationz'], var_dict['train_loss'])
+sc2 = ax1.scatter(var_dict['iterationz'],  var_dict['test_loss'])
 
 
-sc3 = ax2.plot(var_dict['iterationz'],  var_dict['train_accuracies'])
-sc4 = ax2.plot(var_dict['iterationz'],  var_dict['test_accuracies'])
+sc3 = ax2.scatter(var_dict['iterationz'],  var_dict['train_accuracies'])
+sc4 = ax2.scatter(var_dict['iterationz'],  var_dict['test_accuracies'])
 
-sc5 = ax3.plot(var_dict['iterationz'], var_dict['train_f1_scores'])
-sc6 = ax3.plot(var_dict['iterationz'], var_dict['test_f1_scores'])
+sc5 = ax3.scatter(var_dict['iterationz'], var_dict['train_f1_scores'])
+sc6 = ax3.scatter(var_dict['iterationz'], var_dict['test_f1_scores'])
 
 
 ax1.set_xticks([])

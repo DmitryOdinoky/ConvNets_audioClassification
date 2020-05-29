@@ -55,7 +55,19 @@ class Model(nn.Module):
         super(Model, self).__init__()
 
         self.backbone_model: ResNet = torchvision.models.resnet18(pretrained=True)
-
+        
+        weight_conv1_pretrained = self.backbone_model.conv1.weight.data
+        self.backbone_model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        
+        
+        # idx_rgb = 0
+        # for idx in range(512):
+        #     self.backbone_model.conv1.weight.data[:, idx, :, :] = weight_conv1_pretrained[:, idx_rgb, :, :]
+        #     idx_rgb += 1
+        #     if idx_rgb == 2:
+        #         idx_rgb = 0
+        
+        
         self.features = torch.nn.Sequential(
             self.backbone_model.conv1,
             self.backbone_model.bn1,
