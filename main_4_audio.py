@@ -111,8 +111,8 @@ train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Baka
                                 train = True)
 
 
-test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/instruments.csv',
-                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/testing_mini_dataset.csv',
+                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
                                 train = False)
 
 train_loader = torch.utils.data.DataLoader(train_dataset,
@@ -120,7 +120,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset,
                             batch_size = args.batchsize_train)
 
 test_loader = torch.utils.data.DataLoader(test_dataset,
-                            shuffle=True,
+                            shuffle=False,
                             batch_size = args.batchsize_test)
 
 
@@ -376,7 +376,7 @@ for epoch in range(number_of_epochs):
             #meters[f'{stage}_mAPMeter'].add(meters[f'{stage}_mAPMeter'].value())
             
             
-        #confusion_matrix = meters[f'{stage}_confusion'].value()
+        confusion_matrix = meters[f'{stage}_confusion'].value()
         
         #confusion_matrix = confusion_meter.value() 
         
@@ -398,22 +398,25 @@ f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharey=False)
 
 ax1.set_title('1: Loss.  2: Accuracy. 3: F1. ')
 
-sc1 = ax1.scatter(var_dict['iterationz'], var_dict['train_loss'])
-sc2 = ax1.scatter(var_dict['iterationz'],  var_dict['test_loss'])
+sc1 = ax1.plot(var_dict['iterationz'], var_dict['train_loss'], label='train')
+sc2 = ax1.plot(var_dict['iterationz'],  var_dict['test_loss'], label='test')
 
 
-sc3 = ax2.scatter(var_dict['iterationz'],  var_dict['train_accuracies'])
-sc4 = ax2.scatter(var_dict['iterationz'],  var_dict['test_accuracies'])
+sc3 = ax2.plot(var_dict['iterationz'],  var_dict['train_accuracies'])
+sc4 = ax2.plot(var_dict['iterationz'],  var_dict['test_accuracies'])
 
-sc5 = ax3.scatter(var_dict['iterationz'], var_dict['train_f1_scores'])
-sc6 = ax3.scatter(var_dict['iterationz'], var_dict['test_f1_scores'])
+sc5 = ax3.plot(var_dict['iterationz'], var_dict['train_f1_scores'])
+sc6 = ax3.plot(var_dict['iterationz'], var_dict['test_f1_scores'])
 
 
 ax1.set_xticks([])
 ax2.set_xticks([])
 
+leg = ax1.legend(loc='upper right');
 
-ax1.legend((sc1, sc2), ('test', 'train'), loc='upper right', shadow=True)
+
+
+
 
 #%%
 
