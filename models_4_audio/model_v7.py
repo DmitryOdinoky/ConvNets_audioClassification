@@ -71,7 +71,7 @@ class Model(nn.Module):
         self.features = torch.nn.Sequential(
             self.backbone_model.conv1,
             self.backbone_model.bn1,
-            self.backbone_model.relu,
+             self.backbone_model.relu,
             self.backbone_model.maxpool,
 
             self.backbone_model.layer1,
