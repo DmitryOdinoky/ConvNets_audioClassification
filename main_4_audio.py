@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-
+from tools import radam
 
 import datetime
 
@@ -56,11 +56,11 @@ parser.add_argument("--model", type=str, default='model_v7', help="model:model_v
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=57,
+parser.add_argument('--batchsize_train', type=int, default=107,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_test', type=int, default=57,
+    '--batchsize_test', type=int, default=107,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=5,
@@ -167,7 +167,8 @@ net.to(device)
 
 
 #learning_rate =
-optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
+#optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
+optimizer = radam.RAdam(net.parameters(), lr=args.learning_rate)
 
 
 

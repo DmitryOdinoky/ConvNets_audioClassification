@@ -62,11 +62,11 @@ class fsd_dataset(object):
            S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
 
            
-           S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
+           #S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
+
+           #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=20)
            
-           
-           
-           #S = librosa.feature.melspectrogram(S, sr=sr, n_mels=24,fmax=20000)           
+           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=24,fmax=20000)           
            #S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
            
            #S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
