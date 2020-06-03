@@ -56,8 +56,16 @@ class Model(nn.Module):
 
         self.backbone_model: ResNet = torchvision.models.resnet18(pretrained=True)
         
-        weight_conv1_pretrained = self.backbone_model.conv1.weight.data
-        self.backbone_model.conv1 = torch.nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        # weight_conv1_pretrained = self.backbone_model.conv1.weight.data
+        # self.backbone_model.conv1 = torch.nn.Conv2d(
+        #     1, 
+        #     64, 
+        #     kernel_size=7, 
+        #     stride=2, 
+        #     padding=3, 
+        #     bias=False)
+        
+        # self.backbone_model.conv1.weight.data[:,1,:,:]
         
         
         # idx_rgb = 0
@@ -83,7 +91,8 @@ class Model(nn.Module):
         self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=args.classes_amount) # muzikas instrumentu klases
 
     def forward(self, x):
-
+        
+        x = x.repeat(1,3,1,1)
         out = self.features.forward(x)
         out = F.adaptive_avg_pool2d(out, output_size=(1,1))
         out = out.view(out.size(0), -1)

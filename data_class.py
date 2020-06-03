@@ -32,9 +32,7 @@ class fsd_dataset(object):
         self.labels = self.dataset_frame.label.unique()
         self.numeric_labels = np.arange(len(self.labels))
         #self.indexes = self.labels.index.tolist()
-        
-        dictionary = dict(zip(self.labels, self.numeric_labels))
-        
+        dictionary = dict(zip(self.labels, self.numeric_labels))        
         self.dataset_frame.label = [dictionary[item] for item in self.dataset_frame.label] 
 
 
@@ -47,31 +45,46 @@ class fsd_dataset(object):
         self.path = path
 
         self.time_window = 140
+        
+        self.hop_length = 512
+        self.n_fft = 1023
                 
 
         
         for file in tqdm(self.dataset_frame['fname']):
            S, sr = librosa.load(self.path + file, sr=44100, mono=True)
+           S = librosa.resample(S, sr, 16000)
            # hop_length = 512
-           hop_length = 512
-           n_fft = 1023
+
            category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
+           
+           split_points = librosa.effects.split(S, top_db=40, frame_length=self.n_fft, hop_length=self.hop_length)
+           S_cleaned = []
+            
+           for piece in split_points:
+                
+               S_cleaned.append(S[piece[0]:piece[1]])
+                
+           S = S_cleaned[0]
            
   
            
-           S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
+           #S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
 
            
            #S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
 
-           #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=20)
+           #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=30)
            
-           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=24,fmax=20000)           
+           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=64,fmax=20000)           
+           
            #S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
            
            #S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
            
-           S = abs(S)
+           S = abs(np.log(S + 1e-20))
+           
+           #S = abs(S)
            
            S_max = S.max()
            S_min = S.min()
