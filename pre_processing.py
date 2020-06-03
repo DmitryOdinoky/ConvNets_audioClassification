@@ -24,12 +24,15 @@ path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATA
 target_path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/'
 
 fnames = frame['fname']
+hop_length = 512
+n_fft = 1023
 
 os.listdir(target_path)
 
 for f in fnames:
    
     S, sr = librosa.load(path + f, sr=44100)
+
     
     S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
     
