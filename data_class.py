@@ -53,25 +53,25 @@ class fsd_dataset(object):
         
         for file in tqdm(self.dataset_frame['fname']):
            S, sr = librosa.load(self.path + file, sr=44100, mono=True)
-           S = librosa.resample(S, sr, 16000)
+           
+           #S = librosa.resample(S, sr, 16000)
            # hop_length = 512
 
            category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
            
-           split_points = librosa.effects.split(S, top_db=40, frame_length=self.n_fft, hop_length=self.hop_length)
+           split_points = librosa.effects.split(S, top_db=10, frame_length=self.n_fft, hop_length=self.hop_length)
            S_cleaned = []
-            
+         
            for piece in split_points:
-                
+         
                S_cleaned.append(S[piece[0]:piece[1]])
-                
-           S = S_cleaned[0]
+         
+            
+           S = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
            
   
            
            #S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
-
-           
            #S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
 
            #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=30)
@@ -82,7 +82,7 @@ class fsd_dataset(object):
            
            #S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
            
-           S = abs(np.log(S + 1e-20))
+           S = np.log(abs(S) + 1e-20)
            
            #S = abs(S)
            
