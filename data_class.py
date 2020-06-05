@@ -22,7 +22,7 @@ class fsd_dataset(object):
 
         self.if_train = True
       
-        self.dataset_frame = pd.read_csv(csv_file)
+        self.dataset_frame = pd.read_csv(csv_file).dropna(axis=0, how='all')
         
         #self.dataset_frame = self.dataset_frame.drop(['index','manually_verified','freesound_id','license'], axis=1)
         #self.dataset_frame = self.dataset_frame.drop(['index'], axis=1)
@@ -44,22 +44,35 @@ class fsd_dataset(object):
         
         self.path = path
 
-        self.time_window = 140
+        #self.time_window = 140
         
-        self.hop_length = 512
-        self.n_fft = 1023
+        self.hop_length = 128
+        self.n_fft = 255
+        
+        # self.window_length = 50
+        # self.overlap_length = 24
+        self.window_length = 140
+        self.overlap_length = 69
                 
-
+        self.downsample = 16000
+        
+        self.n_mels = 126
+        self.n_mfcc = 63
         
         for file in tqdm(self.dataset_frame['fname']):
            S, sr = librosa.load(self.path + file, sr=44100, mono=True)
            
-           #S = librosa.resample(S, sr, 16000)
-           # hop_length = 512
+           S = librosa.resample(S, sr, self.downsample)
+           
+           sr = self.downsample
+           
+           S = librosa.util.normalize(S)
+          
 
            category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
            
-           split_points = librosa.effects.split(S, top_db=10, frame_length=self.n_fft, hop_length=self.hop_length)
+           split_points = librosa.effects.split(S, top_db=160, frame_length=self.n_fft, hop_length=self.hop_length)
+           
            S_cleaned = []
          
            for piece in split_points:
@@ -71,12 +84,13 @@ class fsd_dataset(object):
            
   
            
-           #S, index = librosa.effects.trim(S, top_db=30, frame_length=n_fft, hop_length=hop_length)
-           #S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
-
-           #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=30)
+           #S, index = librosa.effects.trim(S, top_db=60, frame_length=self.n_fft, hop_length=self.hop_length)
+           #S = librosa.stft(S, n_fft=self.n_fft, hop_length=self.hop_length)
            
-           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=64,fmax=20000)           
+           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=self.n_mels,fmax=sr/2)  
+           #S = librosa.feature.mfcc(S, sr=sr, n_mfcc=self.n_mfcc)
+           
+          
            
            #S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
            
@@ -87,8 +101,7 @@ class fsd_dataset(object):
            #S = abs(S)
            
            S_max = S.max()
-           S_min = S.min()
-           
+           S_min = S.min()          
            S -=S_min
            S /= (S_max - S_min) # 0..1
           
@@ -102,9 +115,11 @@ class fsd_dataset(object):
            categories = []
           
            
-           for idx in range(0, len(S[0])//self.time_window-1):
-            
-               samples.append(S[:,idx*self.time_window:(idx+1)*self.time_window])    
+           for idx in range(0, S.shape[1]-self.window_length, self.overlap_length):
+               
+               A = S[:, idx : idx+self.window_length]
+               
+               samples.append(A)    
                categories.append(category.iloc[0])
         
            #samples = functools.reduce(operator.iconcat, samples, [])

@@ -153,49 +153,53 @@ class Model(nn.Module):
         
         #input_size = 28 #W, H
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels = 1, out_channels = 8, 
+            nn.Conv2d(in_channels = 1, out_channels = 16, 
                 kernel_size = 7, 
                 padding = args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=8),
+            nn.BatchNorm2d(num_features=16),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            torch.nn.Dropout(0.1)
         )
         
-        self.resBlock1 = ResNetBlock(in_channels=8)
-        self.resBlock1_bottleneck = ResNetBottleNeck(in_channels=8, out_channels = 12)
+        self.resBlock1 = ResNetBlock(in_channels=16)
+        self.resBlock1_bottleneck = ResNetBottleNeck(in_channels=16, out_channels = 32)
         
         
         #input_size = get_output_size(next(iter(self.layer1.children())), input_size)
         
         self.layer2 = nn.Sequential(
-            nn.Conv2d(in_channels=12, out_channels=16,
+            nn.Conv2d(in_channels=32, out_channels=64,
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=16),
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1)
+            nn.MaxPool2d(kernel_size=1, stride=1),
+            torch.nn.Dropout(0.1)
         )
         
         #input_size = get_output_size(next(iter(self.layer2.children())), input_size)
 
         self.layer3 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=24, 
+            nn.Conv2d(in_channels=64, out_channels=128, 
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=24),
+            nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1)
+            nn.MaxPool2d(kernel_size=1, stride=1),
+            torch.nn.Dropout(0.1)
         )
         
         #input_size = get_output_size(next(iter(self.layer3.children())), input_size)
         
         self.layer4 = nn.Sequential(
-            nn.Conv2d(in_channels=24, out_channels=24,
+            nn.Conv2d(in_channels=128, out_channels=256,
                       kernel_size=args.kernel_size,
                       padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=24),
+            nn.BatchNorm2d(num_features=256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1)
+            nn.MaxPool2d(kernel_size=1, stride=1),
+            torch.nn.Dropout(0.1)
         )
         
         #input_size = get_output_size(next(iter(self.layer4.children())), input_size)
@@ -203,7 +207,9 @@ class Model(nn.Module):
         self.adaptive_pool = nn.AdaptiveAvgPool2d(1)
         #self.drop = nn.Dropout2d(0.25)
 
-        self.fc1 = nn.Linear(in_features=24,out_features=10)
+        self.fc1 = nn.Linear(in_features=256,out_features=128)
+        self.fc2 = nn.Linear(in_features=128,out_features=64)
+        self.fc3 = nn.Linear(in_features=64,out_features=args.classes_amount)
         
         #in_features=24*round(input_size)**2,
         

@@ -60,13 +60,16 @@ class Model(nn.Module):
         self.features = torch.nn.Sequential(
             self.backbone_model.conv1,
             self.backbone_model.bn1,
-             self.backbone_model.relu,
+            self.backbone_model.relu,
             self.backbone_model.maxpool,
+            torch.nn.Dropout(0.1),
 
             self.backbone_model.layer1,
             self.backbone_model.layer2,
             self.backbone_model.layer3,
             self.backbone_model.layer4,
+            torch.nn.Dropout(0.1)
+          
         )
 
         self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=args.classes_amount) # muzikas instrumentu klases
