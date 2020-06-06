@@ -51,22 +51,22 @@ parser = argparse.ArgumentParser(description='Self-made audio dataset example',
 
 #parser.add_argument("--model", type=str, default='model_v7', help="model:model_v")
 
-parser.add_argument("--model", type=str, default='ResNet18_light', help="model:model_v")
+parser.add_argument("--model", type=str, default='DIY', help="model:model_v")
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=50,
+parser.add_argument('--batchsize_train', type=int, default=20,
                     help='input batch size for training')
 
 parser.add_argument(
-    '--batchsize_test', type=int, default=50,
+    '--batchsize_test', type=int, default=20,
     help='Steps per epoch during validation')
 
 parser.add_argument('--epochs', type=int, default=5,
                     help='number of epochs to train')
 
-parser.add_argument('--learning_rate', type=float, default=0.001,
+parser.add_argument('--learning_rate', type=float, default=0.0001,
                     help='learning rate for a single GPU')
 
 parser.add_argument('--kernel_size', type=int, default=7,
@@ -78,7 +78,7 @@ parser.add_argument('--padding', type=int, default=1,
 parser.add_argument('--stride', type=int, default=2,
                     help='stride')
 
-parser.add_argument('--classes_amount', type=int, default=4,
+parser.add_argument('--classes_amount', type=int, default=10,
                     help='wtf')
 
 
@@ -124,24 +124,22 @@ test_loader = torch.utils.data.DataLoader(test_dataset,
 
     
     
-# =============================================================================
 # train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/train_mini_dataset.csv',
 #                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
 #                                 train = True)
-# 
-# 
+
+
 # test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/test_mini_dataset.csv',
 #                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/test_wavfiles/',
 #                                 train = False)
-# 
+
 # train_loader = torch.utils.data.DataLoader(train_dataset,
 #                             shuffle=True,
 #                             batch_size = args.batchsize_train)
-# 
+
 # test_loader = torch.utils.data.DataLoader(test_dataset,
 #                             shuffle=False,
 #                             batch_size = args.batchsize_test)
-# =============================================================================
 
 
 
@@ -445,4 +443,3 @@ write_report(var_dict, 'general')
 
 
 #%%
-

@@ -207,9 +207,9 @@ class Model(nn.Module):
         self.adaptive_pool = nn.AdaptiveAvgPool2d(1)
         #self.drop = nn.Dropout2d(0.25)
 
-        self.fc1 = nn.Linear(in_features=256,out_features=128)
-        self.fc2 = nn.Linear(in_features=128,out_features=64)
-        self.fc3 = nn.Linear(in_features=64,out_features=args.classes_amount)
+        # self.fc1 = nn.Linear(in_features=256,out_features=128)
+        # self.fc2 = nn.Linear(in_features=128,out_features=64)
+        self.fc3 = nn.Linear(in_features=256,out_features=args.classes_amount)
         
         #in_features=24*round(input_size)**2,
         
@@ -227,7 +227,9 @@ class Model(nn.Module):
         
         out = out.view(out.size(0), -1)
         
-        out = self.fc1.forward(out)
+        # out = self.fc1.forward(out)
+        # out = self.fc2.forward(out)
+        out = self.fc3.forward(out)
     
         
         out = torch.softmax(out, dim=1)
