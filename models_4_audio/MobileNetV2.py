@@ -25,7 +25,7 @@ import torch.nn.functional as F
 # from sklearn.metrics import accuracy_score, precision_score, recall_score
 # import sklearn.utils
 import torchvision
-from torchvision.models import DenseNet, ResNet
+from torchvision.models import mobilenet_v2
 
 
 # class Model(nn.Module):
@@ -53,44 +53,45 @@ class Model(nn.Module):
 
     def __init__(self, args):
         super(Model, self).__init__()
+        
+        self.layer1 = nn.Sequential(
+            
+            nn.Conv2d(in_channels = 1, out_channels = 16, 
+                kernel_size = 1, 
+                padding = args.padding, stride=args.stride),
+            nn.Dropout(0.1),
+            nn.BatchNorm2d(num_features=16),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+            
+        )
+        
+        self.layer2 = nn.Sequential(
+            
+            nn.Conv2d(in_channels = 16, out_channels = 32, 
+                kernel_size = 1, 
+                padding = args.padding, stride=args.stride),
+            nn.Dropout(0.1),
+            nn.BatchNorm2d(num_features=32),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+            
+        )
 
-        self.backbone_model: ResNet = torchvision.models.resnet18(pretrained=True)
+        self.backbone_model = torchvision.models.mobilenet_v2(pretrained=True)
         
                 
-        self.features = torch.nn.Sequential(
-            self.backbone_model.conv1,
-            self.backbone_model.bn1,
-            self.backbone_model.relu,
-            self.backbone_model.maxpool,
 
-
-            self.backbone_model.layer1,
-            self.backbone_model.layer2,
-            self.backbone_model.layer3,
-            self.backbone_model.layer4
-
-          
-        )
-
-        self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=args.classes_amount)
+        #self.fc1 = nn.Linear(in_features=self.backbone_model.fc.in_features, out_features=args.classes_amount)
         
-        self.lin_layer1 = nn.Sequential(
-            nn.Linear(in_features=self.backbone_model.fc.in_features,out_features=args.classes_amount),
-            nn.Dropout(0.1),
-            nn.BatchNorm1d(num_features=args.classes_amount),
-            nn.ReLU()
 
-        )
         
 
 
     def forward(self, x):
         
         x = x.repeat(1,3,1,1)
-        out = self.features.forward(x)
-        out = F.adaptive_avg_pool2d(out, output_size=(1,1))
-        out = out.view(out.size(0), -1)
-        out = self.lin_layer1.forward(out)
+        out = self.backbone_model.forward(x)
 
         out = torch.softmax(out, dim=1)
 

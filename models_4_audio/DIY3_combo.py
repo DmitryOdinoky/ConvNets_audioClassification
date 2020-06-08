@@ -35,7 +35,7 @@ def get_output_size(conv2d: nn.Conv2d, input_size):
 
 class ResNetBlock(nn.Module):
     
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, kernel_size):
         super().__init__()
         
        
@@ -45,7 +45,7 @@ class ResNetBlock(nn.Module):
                 out_channels=in_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
             torch.nn.ReLU(),
@@ -55,7 +55,7 @@ class ResNetBlock(nn.Module):
                 out_channels=in_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
             torch.nn.ReLU(),
@@ -65,10 +65,12 @@ class ResNetBlock(nn.Module):
                 out_channels=in_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
+            nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=in_channels)
+  
             
             
             
@@ -86,7 +88,7 @@ class ResNetBlock(nn.Module):
     
 class ResNetBottleNeck(nn.Module):
     
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels,kernel_size):
         super().__init__()
         
         self.convs = torch.nn.Sequential(
@@ -95,7 +97,7 @@ class ResNetBottleNeck(nn.Module):
                 out_channels=in_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
             torch.nn.ReLU(),
@@ -105,7 +107,7 @@ class ResNetBottleNeck(nn.Module):
                 out_channels=in_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
             torch.nn.ReLU(),
@@ -115,10 +117,12 @@ class ResNetBottleNeck(nn.Module):
                 out_channels=out_channels,
                 padding=1,
                 stride=1,
-                kernel_size = 3
+                kernel_size = kernel_size
             ),
             
+            nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=out_channels)
+
             
          
             
@@ -154,16 +158,17 @@ class Model(nn.Module):
         #input_size = 28 #W, H
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels = 1, out_channels = 16, 
-                kernel_size = 7, 
+                kernel_size = args.kernel_size, 
                 padding = args.padding, stride=args.stride),
+            nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=16),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            torch.nn.Dropout(0.5)
+            nn.MaxPool2d(kernel_size=2, stride=2)
+            #torch.nn.Dropout(0.1)
         )
         
-        self.resBlock1 = ResNetBlock(in_channels=16)
-        self.resBlock2 = ResNetBottleNeck(in_channels=16, out_channels = 24)
+        self.resBlock1 = ResNetBlock(in_channels=16, kernel_size = 3)
+        self.resBlock2 = ResNetBottleNeck(in_channels=16, out_channels = 24, kernel_size = 3)
         
         #input_size = get_output_size(next(iter(self.layer1.children())), input_size)
         
@@ -171,10 +176,11 @@ class Model(nn.Module):
             nn.Conv2d(in_channels=24, out_channels=64,
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
+            nn.Dropout(0.2),
             nn.BatchNorm2d(num_features=64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1),
-            torch.nn.Dropout(0.5)
+            nn.MaxPool2d(kernel_size=1, stride=1)
+            
         )
         
         #input_size = get_output_size(next(iter(self.layer2.children())), input_size)
@@ -183,10 +189,11 @@ class Model(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128, 
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
+            nn.Dropout(0.3),
             nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1),
-            torch.nn.Dropout(0.5)
+            nn.MaxPool2d(kernel_size=1, stride=1)
+            #torch.nn.Dropout(0.1)
         )
         
         #input_size = get_output_size(next(iter(self.layer3.children())), input_size)
@@ -195,10 +202,11 @@ class Model(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=256,
                       kernel_size=args.kernel_size,
                       padding=args.padding, stride=args.stride),
+            nn.Dropout(0.4),
             nn.BatchNorm2d(num_features=256),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=1, stride=1),
-            torch.nn.Dropout(0.5)
+            nn.MaxPool2d(kernel_size=1, stride=1)
+            #torch.nn.Dropout(0.1)
         )
         
 
@@ -206,16 +214,18 @@ class Model(nn.Module):
         
         self.lin_layer1 = nn.Sequential(
             nn.Linear(in_features=256,out_features=128),
+            nn.Dropout(0.2),
             nn.BatchNorm1d(num_features=128),
-            nn.ReLU(),
-            torch.nn.Dropout(0.5)
+            nn.ReLU()
+
         )
         
         self.lin_layer2 = nn.Sequential(
             nn.Linear(in_features=128,out_features=args.classes_amount),
+            nn.Dropout(0.1),
             nn.BatchNorm1d(num_features=args.classes_amount),
-            nn.ReLU(),
-            torch.nn.Dropout(0.5)
+            nn.ReLU()
+            #torch.nn.Dropout(0.1)
         )
         
         

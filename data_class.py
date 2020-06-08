@@ -13,6 +13,9 @@ import librosa
 
 import functools
 import operator
+
+import math
+import scipy
             
             
             
@@ -47,17 +50,16 @@ class fsd_dataset(object):
         #self.time_window = 140
         
         self.hop_length = 256
-        self.n_fft = 2048
+        self.n_fft = 512
         
-        # self.window_length = 50
-        # self.overlap_length = 24
-        self.window_length = 200
-        self.overlap_length = 180
+
+        self.window_length = 140
+        self.overlap_length = 100
                 
         self.downsample = 16000
         
-        self.n_mels = 63
-        self.n_mfcc = 63
+        self.n_mels = 120
+        self.n_mfcc = 120
         
         for file in tqdm(self.dataset_frame['fname']):
            S, sr = librosa.load(self.path + file, sr=44100, mono=True)
@@ -87,16 +89,26 @@ class fsd_dataset(object):
             
            S = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
            
-           for i in range(0,4):
+           for i in range(0,1):
                S = np.concatenate((S,S),axis=0)
+               
+           sampleRate = sr 
+           cutOffFrequency = 8000
+           freqRatio = (cutOffFrequency/sampleRate)
+        
+           N = int(math.sqrt(0.196196 + freqRatio**2)/freqRatio)
+        
+           win = np.ones(N)
+           win *= 1.0/N
+           S = scipy.signal.lfilter(win, [1], S)
            
   
            
            #S, index = librosa.effects.trim(S, top_db=60, frame_length=self.n_fft, hop_length=self.hop_length)
            #S = librosa.stft(S, n_fft=self.n_fft, hop_length=self.hop_length)
            
-           S = librosa.feature.melspectrogram(S, sr=sr, n_mels=self.n_mels,fmax=sr/2)  
-           #S = librosa.feature.mfcc(S, sr=sr, n_mfcc=self.n_mfcc)
+           #S = librosa.feature.melspectrogram(S, sr=sr, n_mels=self.n_mels, n_fft=self.n_fft, hop_length=self.hop_length, fmax=sr/2)  
+           S = librosa.feature.mfcc(S, sr=sr, n_mfcc=self.n_mfcc)
            
           
            
