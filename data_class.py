@@ -46,17 +46,17 @@ class fsd_dataset(object):
 
         #self.time_window = 140
         
-        self.hop_length = 128
-        self.n_fft = 255
+        self.hop_length = 256
+        self.n_fft = 2048
         
         # self.window_length = 50
         # self.overlap_length = 24
-        self.window_length = 140
-        self.overlap_length = 69
+        self.window_length = 200
+        self.overlap_length = 180
                 
         self.downsample = 16000
         
-        self.n_mels = 126
+        self.n_mels = 63
         self.n_mfcc = 63
         
         for file in tqdm(self.dataset_frame['fname']):
@@ -66,12 +66,17 @@ class fsd_dataset(object):
            
            sr = self.downsample
            
-           S = librosa.util.normalize(S)
+           #S = librosa.util.normalize(S)
+           
+           S_max = S.max()
+           S_min = S.min()          
+           S -=S_min
+           S /= (S_max - S_min) # 0..1
           
 
            category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
            
-           split_points = librosa.effects.split(S, top_db=160, frame_length=self.n_fft, hop_length=self.hop_length)
+           split_points = librosa.effects.split(S, top_db=80, frame_length=self.n_fft, hop_length=self.hop_length)
            
            S_cleaned = []
          
@@ -81,6 +86,9 @@ class fsd_dataset(object):
          
             
            S = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
+           
+           for i in range(0,4):
+               S = np.concatenate((S,S),axis=0)
            
   
            

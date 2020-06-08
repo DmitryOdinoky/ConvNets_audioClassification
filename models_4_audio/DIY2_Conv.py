@@ -169,10 +169,10 @@ class Model(nn.Module):
         #input_size = get_output_size(next(iter(self.layer1.children())), input_size)
         
         self.layer2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=64,
+            nn.Conv2d(in_channels=16, out_channels=32,
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=64),
+            nn.BatchNorm2d(num_features=32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1),
             torch.nn.Dropout(0.1)
@@ -181,10 +181,10 @@ class Model(nn.Module):
         #input_size = get_output_size(next(iter(self.layer2.children())), input_size)
 
         self.layer3 = nn.Sequential(
-            nn.Conv2d(in_channels=64, out_channels=128, 
+            nn.Conv2d(in_channels=32, out_channels=64, 
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=128),
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1),
             torch.nn.Dropout(0.1)
@@ -193,43 +193,57 @@ class Model(nn.Module):
         #input_size = get_output_size(next(iter(self.layer3.children())), input_size)
         
         self.layer4 = nn.Sequential(
-            nn.Conv2d(in_channels=128, out_channels=256,
+            nn.Conv2d(in_channels=64, out_channels=128,
                       kernel_size=args.kernel_size,
                       padding=args.padding, stride=args.stride),
-            nn.BatchNorm2d(num_features=256),
+            nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1),
             torch.nn.Dropout(0.1)
         )
         
+        self.lin_layer1 = nn.Sequential(
+            nn.Linear(in_features=128,out_features=64),
+            nn.ReLU(),
+            torch.nn.Dropout(0.1)
+        )
+        
+        self.lin_layer2 = nn.Sequential(
+            nn.Linear(in_features=64,out_features=args.classes_amount),
+            nn.ReLU(),
+            torch.nn.Dropout(0.1)
+        )
+        
+        
         #input_size = get_output_size(next(iter(self.layer4.children())), input_size)
         
         self.adaptive_pool = nn.AdaptiveAvgPool2d(1)
-        #self.drop = nn.Dropout2d(0.25)
+
 
         # self.fc1 = nn.Linear(in_features=256,out_features=128)
-        # self.fc2 = nn.Linear(in_features=128,out_features=64)
-        self.fc3 = nn.Linear(in_features=256,out_features=args.classes_amount)
+        self.fc2 = nn.Linear(in_features=256,out_features=128)
+        self.fc3 = nn.Linear(in_features=128,out_features=args.classes_amount)
         
         #in_features=24*round(input_size)**2,
         
     def forward(self, x):
         out = self.layer1.forward(x)
         
-        out = self.resBlock1.forward(out)
-        out = self.resBlock1_bottleneck.forward(out)
+        # out = self.resBlock1.forward(out)
+        # out = self.resBlock1_bottleneck.forward(out)
         
         out = self.layer2.forward(out)
         out = self.layer3.forward(out)
         out = self.layer4.forward(out)
+
         
         out = self.adaptive_pool(out)
         
         out = out.view(out.size(0), -1)
         
         # out = self.fc1.forward(out)
-        # out = self.fc2.forward(out)
-        out = self.fc3.forward(out)
+        out = self.lin_layer1.forward(out)
+        out = self.lin_layer2.forward(out)
     
         
         out = torch.softmax(out, dim=1)
