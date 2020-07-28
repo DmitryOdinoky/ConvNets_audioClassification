@@ -47,7 +47,7 @@ class fsd_dataset(object):
 
         self.samplerate = 16000
 
-        self.window_length = 120 # depending on sample length
+        self.window_length = 80 # depending on sample length
         self.overlap_length = 20
 
         self.n_mels = 26
@@ -60,10 +60,27 @@ class fsd_dataset(object):
         
         for file in tqdm(self.dataset_frame['fname']):
 
-            raw, sr = librosa.load(self.path + file, sr=16000, mono=True)
+            raw, sr = librosa.load(self.path + file, sr=self.samplerate, mono=True)
             #raw = librosa.resample(raw, sr, self.samplerate)
 
             label = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label'].values[0]
+            
+            
+            
+            split_points = librosa.effects.split(raw, top_db=80, frame_length=self.n_fft, hop_length=self.hop_length)
+            
+            S_cleaned = []
+                        
+            for piece in split_points:
+             
+                S_cleaned.append(raw[piece[0]:piece[1]])
+         
+            raw = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
+           
+            for i in range(0,1):
+                raw = np.concatenate((raw,raw),axis=0)
+                
+                
 
             S = librosa.feature.mfcc(
                 raw,
@@ -75,20 +92,10 @@ class fsd_dataset(object):
             
             S = np.log(abs(S) + 1e-20)
             
-            # split_points = librosa.effects.split(raw, top_db=80, frame_length=self.n_fft, hop_length=self.hop_length)
-            
-            # S_cleaned = []
-                        
-         
-            # for piece in split_points:
-             
-            #     S_cleaned.append(raw[piece[0]:piece[1]])
-         
-            
-            # raw = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
            
-            # for i in range(0,1):
-            #     raw = np.concatenate((raw,raw),axis=0)
+            
+    
+            
 
 
             S_max = S.max()

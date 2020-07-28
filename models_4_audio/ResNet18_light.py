@@ -65,9 +65,13 @@ class Model(nn.Module):
 
 
             self.backbone_model.layer1,
+            nn.Dropout(0.8),
             self.backbone_model.layer2,
+            nn.Dropout(0.8),
             self.backbone_model.layer3,
-            self.backbone_model.layer4
+            nn.Dropout(0.8),
+            self.backbone_model.layer4,
+            nn.Dropout(0.8)
 
           
         )
@@ -76,7 +80,7 @@ class Model(nn.Module):
         
         self.lin_layer1 = nn.Sequential(
             nn.Linear(in_features=self.backbone_model.fc.in_features,out_features=args.classes_amount),
-            #nn.Dropout(0.1),
+            nn.Dropout(0.8),
             nn.BatchNorm1d(num_features=args.classes_amount),
             nn.ReLU()
 

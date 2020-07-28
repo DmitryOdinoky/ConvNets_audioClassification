@@ -62,7 +62,7 @@ class Model(nn.Module):
             nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=16),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.MaxPool2d(kernel_size=3, stride=1)
             
         )
         
@@ -74,7 +74,7 @@ class Model(nn.Module):
             nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=32),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.MaxPool2d(kernel_size=3, stride=1)
             
         )
 

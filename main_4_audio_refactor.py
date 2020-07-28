@@ -56,23 +56,23 @@ parser.add_argument("--model", type=str, default='ResNet18_light', help="model:m
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batch_size', type=int, default=64,
+parser.add_argument('--batch_size', type=int, default=80,
                     help='input batch size for training')
 
-parser.add_argument('--epochs', type=int, default=3,
+parser.add_argument('--epochs', type=int, default=14,
                     help='number of epochs to train')
 
-parser.add_argument('--learning_rate', type=float, default=1e-3,
+parser.add_argument('--learning_rate', type=float, default=1e-4,
                     help='learning rate for a single GPU')
 
-parser.add_argument('--kernel_size', type=int, default=3,
-                    help='kernel size for convolution')
+# parser.add_argument('--kernel_size', type=int, default=3,
+#                     help='kernel size for convolution')
 
-parser.add_argument('--padding', type=int, default=3,
-                    help='padding')
+# parser.add_argument('--padding', type=int, default=3,
+#                     help='padding')
 
-parser.add_argument('--stride', type=int, default=1,
-                    help='stride')
+# parser.add_argument('--stride', type=int, default=1,
+#                     help='stride')
 
 parser.add_argument('--classes_amount', type=int, default=4,
                     help='wtf')
@@ -101,7 +101,7 @@ train_loader = torch.utils.data.DataLoader(train_dataset,
                             batch_size = args.batch_size)
 
 test_loader = torch.utils.data.DataLoader(test_dataset,
-                            shuffle=True,
+                            shuffle=False,
                             batch_size = args.batch_size)
 
 #%%
@@ -235,7 +235,7 @@ stage = ''
 
 
 
-for epoch in tqdm(range(number_of_epochs)):
+for epoch in range(number_of_epochs):
     
     for key in meters.keys():
         meters[key].reset()
