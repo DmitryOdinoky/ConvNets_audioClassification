@@ -1,6 +1,8 @@
 import pandas as pd
 import sklearn, sklearn.utils
 import torch
+
+from python_speech_features import mfcc
     
 import numpy as np
 import mmap
@@ -9,14 +11,10 @@ from tqdm import tqdm
 
 
 import librosa
-
+import json
 
 import functools
 import operator
-
-import math
-import scipy
-            
             
             
 class fsd_dataset(object):
@@ -33,11 +31,6 @@ class fsd_dataset(object):
         #self.dataset_frame_mod = self.dataset_frame.copy(deep=True)
         
         self.labels = self.dataset_frame.label.unique()
-        self.numeric_labels = np.arange(len(self.labels))
-        #self.indexes = self.labels.index.tolist()
-        dictionary = dict(zip(self.labels, self.numeric_labels))        
-        self.dataset_frame.label = [dictionary[item] for item in self.dataset_frame.label] 
-
 
         self.all_samples = []
         
@@ -50,134 +43,93 @@ class fsd_dataset(object):
         #self.time_window = 140
         
         self.hop_length = 256
-        self.n_fft = 512
-        
+        self.n_fft = 1103
 
-        self.window_length = 140
-        self.overlap_length = 100
-                
-        self.downsample = 16000
-        
-        self.n_mels = 120
-        self.n_mfcc = 120
+        self.samplerate = 16000
+
+        self.window_length = 120 # depending on sample length
+        self.overlap_length = 20
+
+        self.n_mels = 26
+        self.n_mfcc = 13
+
+        self.samples = []
+
+        self.y_by_label = {}
+        self.y_counts = {}
         
         for file in tqdm(self.dataset_frame['fname']):
-           S, sr = librosa.load(self.path + file, sr=44100, mono=True)
-           
-           S = librosa.resample(S, sr, self.downsample)
-           
-           sr = self.downsample
-           
-           #S = librosa.util.normalize(S)
-           
-           S_max = S.max()
-           S_min = S.min()          
-           S -=S_min
-           S /= (S_max - S_min) # 0..1
-          
 
-           category = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label']
-           
-           split_points = librosa.effects.split(S, top_db=80, frame_length=self.n_fft, hop_length=self.hop_length)
-           
-           S_cleaned = []
+            raw, sr = librosa.load(self.path + file, sr=16000, mono=True)
+            #raw = librosa.resample(raw, sr, self.samplerate)
+
+            label = self.dataset_frame.loc[self.dataset_frame.fname == file, 'label'].values[0]
+
+            S = librosa.feature.mfcc(
+                raw,
+                sr=self.samplerate,
+                n_mels=self.n_mels,
+                n_fft=self.n_fft,
+                hop_length=self.hop_length
+            )
+            
+            S = np.log(abs(S) + 1e-20)
+            
+            # split_points = librosa.effects.split(raw, top_db=80, frame_length=self.n_fft, hop_length=self.hop_length)
+            
+            # S_cleaned = []
+                        
          
-           for piece in split_points:
-         
-               S_cleaned.append(S[piece[0]:piece[1]])
+            # for piece in split_points:
+             
+            #     S_cleaned.append(raw[piece[0]:piece[1]])
          
             
-           S = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
+            # raw = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
            
-           for i in range(0,1):
-               S = np.concatenate((S,S),axis=0)
-               
-           sampleRate = sr 
-           cutOffFrequency = 8000
-           freqRatio = (cutOffFrequency/sampleRate)
-        
-           N = int(math.sqrt(0.196196 + freqRatio**2)/freqRatio)
-        
-           win = np.ones(N)
-           win *= 1.0/N
-           S = scipy.signal.lfilter(win, [1], S)
-           
-  
-           
-           #S, index = librosa.effects.trim(S, top_db=60, frame_length=self.n_fft, hop_length=self.hop_length)
-           #S = librosa.stft(S, n_fft=self.n_fft, hop_length=self.hop_length)
-           
-           #S = librosa.feature.melspectrogram(S, sr=sr, n_mels=self.n_mels, n_fft=self.n_fft, hop_length=self.hop_length, fmax=sr/2)  
-           S = librosa.feature.mfcc(S, sr=sr, n_mfcc=self.n_mfcc)
-           
-          
-           
-           #S = librosa.power_to_db(abs(S),ref=np.max,top_db=120)
-           
-           #S = librosa.amplitude_to_db(abs(S),ref=np.max,top_db=120)
-           
-           S = np.log(abs(S) + 1e-20)
-           
-           #S = abs(S)
-           
-           S_max = S.max()
-           S_min = S.min()          
-           S -=S_min
-           S /= (S_max - S_min) # 0..1
-          
-           
-           
-           # X = librosa.stft(x, n_fft=n_fft, hop_length=hop_length)
-           # X = librosa.feature.melspectrogram(x, sr=fs, n_mels=128,fmax=20000)
-           # S = librosa.amplitude_to_db(abs(X),ref=np.max,top_db=120)
-           
-           samples = []
-           categories = []
-          
-           
-           for idx in range(0, S.shape[1]-self.window_length, self.overlap_length):
-               
-               A = S[:, idx : idx+self.window_length]
-               
-               samples.append(A)    
-               categories.append(category.iloc[0])
-        
-           #samples = functools.reduce(operator.iconcat, samples, [])
-           
-           
-           
-           
-           self.spectrogram_array.append(samples)
-           self.metadata_array.append(categories)
-           
-           self.all_samples.append((samples,categories))
-           
-           #self.spectrogram_array.append(S[:,0:80])
-           #self.metadata_array.append(category.iloc[0])   
-        
-        self.spectrogram_array = functools.reduce(operator.iconcat, self.spectrogram_array, [])
-        self.metadata_array = functools.reduce(operator.iconcat, self.metadata_array, [])
-    
-        
+            # for i in range(0,1):
+            #     raw = np.concatenate((raw,raw),axis=0)
+
+
+            S_max = S.max()
+            S_min = S.min()
+            S -= S_min
+            S /= (S_max - S_min) # 0..1
+            S -= 0.5
+            S *= 2.0 # -1 .. 1
+
+            for idx in range(0, S.shape[1]-self.window_length, self.overlap_length):
+                x = S[:, idx : idx+self.window_length]
+
+                if label not in self.y_by_label:
+                    self.y_by_label[label] = len(self.y_by_label)
+
+                y = self.y_by_label[label]
+                self.samples.append((x, y))
+
+                if y not in self.y_counts:
+                    self.y_counts[y] = 0
+                self.y_counts[y] += 1
+
+            #print(f'file: {file} label: {label} counts: {S.shape[1]} / {self.window_length}')
+            # if len(self.samples) > 64:
+            #     break
+
+        print(f'len(self.samples): {len(self.samples)}')
+        print('self.y_counts:')
+        for key, y in self.y_by_label.items():
+            print(f'{key}: {self.y_counts[y]}')
+
+        self.y_weights = torch.zeros((len(self.y_counts.keys()),), dtype=torch.float)
+        for key in self.y_counts.keys():
+            self.y_weights[key] = 1.0 - self.y_counts[key] / len(self.samples)
+
     def __len__(self):
-        return len(self.spectrogram_array)  
+        return len(self.samples)
     
     def __getitem__(self, idx):
-       if torch.is_tensor(idx):
-           idx = idx.tolist()
-       
-       #spec, class_idx = self.all_samples[idx]
-    
-       #x = torch.Tensor(self.spectrogram_array[idx]).unsqueeze(0)
-       #y = torch.Tensor(np.expand_dims(self.metadata_array[idx], axis=0))
-       
-       x = torch.Tensor(self.spectrogram_array[idx]).unsqueeze(0)
-       y = torch.Tensor(np.expand_dims(self.metadata_array[idx], axis=0))
-        
-       #x = torch.Tensor(spectrogram_array).transpose(1,2).unsqueeze(1)
-       #y = torch.Tensor(np.expand_dims(metadata_array, axis=1))
-       
-       return x, y
+        x, y = self.samples[idx]
+        return np.expand_dims(x, axis=0).astype(np.float32), y
 
 
 

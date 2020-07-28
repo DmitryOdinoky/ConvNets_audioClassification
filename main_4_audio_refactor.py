@@ -18,6 +18,7 @@ import argparse
 import os
 
 
+from tqdm import tqdm
 
 import torch.optim as optim
 import torch
@@ -39,6 +40,8 @@ warnings.filterwarnings("ignore")
 
 plt.ion()  
 
+
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
@@ -48,124 +51,105 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 parser = argparse.ArgumentParser(description='Audio classification example',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-
-#parser.add_argument("--model", type=str, default='model_v7', help="model:model_v")
-
-parser.add_argument("--model", type=str, default='DIY2_conv', help="model:model_v")
+parser.add_argument("--model", type=str, default='ResNet18_light', help="model:model_v")
 
 parser.add_argument('--log-dir', default='./logs',
                     help='tensorboard log directory')
 
-parser.add_argument('--batchsize_train', type=int, default=40,
+parser.add_argument('--batch_size', type=int, default=64,
                     help='input batch size for training')
 
-parser.add_argument(
-    '--batchsize_test', type=int, default=40,
-    help='Steps per epoch during validation')
-
-parser.add_argument('--epochs', type=int, default=7,
+parser.add_argument('--epochs', type=int, default=3,
                     help='number of epochs to train')
 
-parser.add_argument('--learning_rate', type=float, default=0.1,
+parser.add_argument('--learning_rate', type=float, default=1e-3,
                     help='learning rate for a single GPU')
 
-parser.add_argument('--kernel_size', type=int, default=7,
+parser.add_argument('--kernel_size', type=int, default=3,
                     help='kernel size for convolution')
 
-parser.add_argument('--padding', type=int, default=1,
+parser.add_argument('--padding', type=int, default=3,
                     help='padding')
 
-parser.add_argument('--stride', type=int, default=2,
+parser.add_argument('--stride', type=int, default=1,
                     help='stride')
 
-parser.add_argument('--classes_amount', type=int, default=41,
+parser.add_argument('--classes_amount', type=int, default=4,
                     help='wtf')
-
-
-# parser.add_argument(
-#     '--decay', type=float, default=0.8,
-#     help='LR decay every 10 epochs')
-# parser.add_argument('--warmup-epochs', type=float, default=5,
-#                     help='number of warmup epochs')
-# parser.add_argument('--momentum', type=float, default=0.9,
-#                     help='SGD momentum')
-# parser.add_argument('--wd', type=float, default=0.000005,
-#                     help='weight decay')
 
 args = parser.parse_args()
 
 # Checkpoints will be written in the log directory.
 args.checkpoint_format = os.path.join(args.log_dir, 'checkpoint-{epoch}.h5')
 
-
 #%%
 
-# train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/train_4_classes_vs_other.csv',
-#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
-#                                 train = True)
-
-
-# test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/test_4_classes_vs_other.csv',
-#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
-#                                 train = False)
-
-# train_loader = torch.utils.data.DataLoader(train_dataset,
-#                             shuffle=True,
-#                             batch_size = args.batchsize_train)
-
-# test_loader = torch.utils.data.DataLoader(test_dataset,
-#                             shuffle=True,
-#                             batch_size = args.batchsize_test)
-
-
-#%%
-
-
-
-    
-    
-train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/train_mini_dataset.csv',
-                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/train_4_classes.csv',
+                                path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
                                 train = True)
 
 
-test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/test_mini_dataset.csv',
+
+test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/test_4_classes.csv',
                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
                                 train = False)
 
+
+
 train_loader = torch.utils.data.DataLoader(train_dataset,
                             shuffle=True,
-                            batch_size = args.batchsize_train)
+                            batch_size = args.batch_size)
 
 test_loader = torch.utils.data.DataLoader(test_dataset,
-                            shuffle=False,
-                            batch_size = args.batchsize_test)
+                            shuffle=True,
+                            batch_size = args.batch_size)
+
+#%%
 
 
-
+# =============================================================================
+# train_dataset = fsd_dataset(
+#     csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/new/41_classes_train.csv',
+#     path='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
+#     train=True)
+# 
+# 
+# test_dataset = fsd_dataset(
+#     csv_file='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/new/41_classes_test.csv',
+#     path='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
+#     train=False)
+# 
+# train_loader = torch.utils.data.DataLoader(train_dataset,
+#                             shuffle=True,
+#                             batch_size = args.batch_size)
+# 
+# test_loader = torch.utils.data.DataLoader(test_dataset,
+#                             shuffle=True,
+#                             batch_size = args.batch_size)
+# =============================================================================
 
 
 #%%
 
-# train_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/train_post_competition.csv',
-#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_train/',
-#                                 train = True)
+
+# train_dataset = fsd_dataset(
+#     csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/train_mini_dataset.csv',
+#     path='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/wavfiles/',
+#     train=True)
 
 
-# test_dataset = fsd_dataset(csv_file = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.meta/test_post_competition.csv',
-#                                 path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
-#                                 train = False)
+# test_dataset = fsd_dataset(
+#     csv_file='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/data_stuff/mini_dataset/test_mini_dataset.csv',
+#     path='D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/DATASETS/FSD/FSDKaggle2018.audio_test/',
+#     train=False)
 
 # train_loader = torch.utils.data.DataLoader(train_dataset,
 #                             shuffle=True,
-#                             batch_size = args.batchsize_train)
+#                             batch_size = args.batch_size)
 
 # test_loader = torch.utils.data.DataLoader(test_dataset,
 #                             shuffle=True,
-#                             batch_size = args.batchsize_test)
-
-
-
+#                             batch_size = args.batch_size)
 
 #%%
 
@@ -178,9 +162,6 @@ net = Model(args)
 net.to(device)
 
 
-
-
-#optimizer = optim.Adam(net.parameters(), lr=args.learning_rate)
 optimizer = radam.RAdam(net.parameters(), lr=args.learning_rate)
 
 
@@ -190,9 +171,7 @@ optimizer = radam.RAdam(net.parameters(), lr=args.learning_rate)
     
     
 def write_report(var_dict, string):
-    
-    path = 'D:/Sklad/Jan 19/RTU works/3_k_sem_1/Bakalaura Darbs/-=Python Code=-/-=2020=-/graduation_project/ConvNets_audioClassification/reports_out/'
-    
+
     postfix = string
     this_time = str(datetime.datetime.now().time()).replace(':','-').replace('.','-')
     this_date = str(datetime.datetime.now().date())
@@ -256,7 +235,7 @@ stage = ''
 
 
 
-for epoch in range(number_of_epochs):
+for epoch in tqdm(range(number_of_epochs)):
     
     for key in meters.keys():
         meters[key].reset()
@@ -274,6 +253,9 @@ for epoch in range(number_of_epochs):
             stage = 'train'
         else:
             stage = 'test'
+            # skip test if the same as train
+            if train_loader.dataset == test_loader.dataset:
+                break
             
         var_dict_epoch = {
             
@@ -288,7 +270,7 @@ for epoch in range(number_of_epochs):
 
         helper = 0
         
-        for batch in loader:
+        for batch in tqdm(loader):
             
             helper += 1
              
@@ -306,24 +288,13 @@ for epoch in range(number_of_epochs):
             y_prim = net.forward(train_X)
             
             class_count = y_prim.size(1)          
-            tmp = torch.arange(class_count)          
-            
-            
-            y = (train_y.unsqueeze(dim=1) == tmp).float()
-            
-            
-            
-            loss = torch.mean(-y*torch.log(y_prim))
+            tmp = torch.arange(class_count).cuda()          
+
+            y = (train_y.unsqueeze(dim=1) == tmp).float() 
+
+            loss = torch.mean(-1*y * torch.log(y_prim) * loader.dataset.y_weights.cuda())
             
             meters[f'{stage}_tnt_loss'].add(loss.item())
-            
-           
-            #confusion_meter: tnt.meter.ConfusionMeter = meters[f'{stage}_confusion']
-            
-            meters[f'{stage}_confusion'].add(y_prim.detach(), labels.detach())
-            
- 
-
             _, predict_y = torch.max(y_prim, 1)
             
             correct = 0
@@ -339,35 +310,22 @@ for epoch in range(number_of_epochs):
             
             accuracy = correct/total
             
-            #accuracy = accuracy_score(train_y.data, predict_y.data)
+
+            f1 = sklearn.metrics.f1_score(train_y.data.cpu(), predict_y.data.cpu(), average='macro')
             
-            
-            f1 = sklearn.metrics.f1_score(train_y.data, predict_y.data, average='macro')
-            
-            
-            var_dict_epoch['tnt_loss_epoch'].append(meters[f'{stage}_tnt_loss'].value()[0])
-            
+
             var_dict_epoch['loss_epoch'].append(loss.item())
             var_dict_epoch['accuracy_epoch'].append(accuracy)
             var_dict_epoch['f1_epoch'].append(f1.item())
             var_dict_epoch['iterationz'].append(iter_epoch)
-            
-            
-           
-            
-            
-            if not (helper % 1):
-                print(f"Iteration: {helper}, Loss: {loss.item()}, Accuracy: {accuracy}")
-            
-            
-            
+
             if loader == train_loader:
-                
                 loss.backward()
                 optimizer.step()
                 
-        
-                
+
+        print(f"stage: {stage} epoch: {epoch}, Loss: {np.average(var_dict_epoch['loss_epoch'])}, Accuracy: {np.average(var_dict_epoch['accuracy_epoch'])}")
+
         if stage == 'train':
    
            var_dict[f'{stage}_loss'].append(np.average(var_dict_epoch['loss_epoch']))
@@ -397,7 +355,7 @@ for epoch in range(number_of_epochs):
         
         
         
-        write_report(var_dict_epoch, f'per_epoch_{stage}')
+        #write_report(var_dict_epoch, f'per_epoch_{stage}')
             
         
    
@@ -427,8 +385,6 @@ ax1.set_xticks([])
 ax2.set_xticks([])
 
 leg = ax1.legend(loc='upper right');
-
-
 
 
 

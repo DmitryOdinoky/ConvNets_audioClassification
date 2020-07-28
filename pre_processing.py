@@ -15,7 +15,7 @@ import torch.utils
 import librosa
 import functools
 import operator
-import mmap
+#import mmap
 
 
 #%% fssdfdf
@@ -52,22 +52,39 @@ dataset_frame.label = [dictionary[item] for item in dataset_frame.label]
 
 
 
+if_train = True
+      
+#dataset_frame = pd.read_csv(csv_file).dropna(axis=0, how='all')
+
+
+
+labels = dataset_frame.label.unique()
+
 all_samples = []
+
 metadata_array = []
 spectrogram_array = []
+  
+path = path
 
-time_window = 140
 
-n_fft = 512
+
 hop_length = 256
+n_fft = 512
 
+samplerate = 16000
+
+window_length = 40 # depending on sample length
+overlap_length = 20
+
+n_mels = 26
+n_mfcc = 26
+
+samples = []
 sample_count = 0
 
-window_length = 50
-overlap_length = 24
-
-n_mels = 64
-    
+y_by_label = {}
+y_counts = {}
 
 fnames = dataset_frame['fname']
 
@@ -80,55 +97,50 @@ fnames = dataset_frame['fname']
 #     label_name = 'guitar'
 #     return (class_idx, label_name)
 
-def get_spectra_frames(path_wav):
+def get_spectra_frames(file):
     
-    S, sr = librosa.load(path + f, sr=44100)
-    S = librosa.util.normalize(S)
-    
-    # = librosa.resample(S, sr, 16000)
-           # hop_length = 512
-    
-#    category = dataset_frame.loc[dataset_frame.fname == f, 'label']
-    
-    split_points = librosa.effects.split(S, top_db=160, frame_length=n_fft, hop_length=hop_length)
-    S_cleaned = []
- 
-    for piece in split_points:
- 
-        S_cleaned.append(S[piece[0]:piece[1]])
- 
-    
-    S = np.array(functools.reduce(operator.iconcat, S_cleaned, []))
-
-    
-    S = librosa.stft(S, n_fft=n_fft, hop_length=hop_length)
- 
-    #S = librosa.feature.mfcc(S, sr=44100, n_mfcc=30)
-    
-    #S = librosa.feature.melspectrogram(S, sr=sr, n_mels=n_mels,fmax=20000)           
-    
-    
-    S = np.log(abs(S) + 1e-20)
-    
-    
-    S_max = S.max()
-    S_min = S.min()
-    
-    S -=S_min
-    S /= (S_max - S_min) # 0..1
-
-    result = []
-    
-    for idx in range(0, S.shape[1]-window_length, overlap_length):
+        raw, sr = librosa.load(path + file, sr=44100, mono=True)
+        raw = librosa.resample(raw, sr, samplerate)
         
-        result.append(S[:, idx : idx+window_length])
-    
-    return result
+        label = dataset_frame.loc[dataset_frame.fname == file, 'label'].values[0]
+        
+        # S = librosa.feature.melspectrogram(
+        #     raw,
+        #     sr=self.samplerate,
+        #     n_mels=self.n_mels,
+        #     n_fft=self.n_fft,
+        #     hop_length=self.hop_length
+        # )
+        # S = np.log(abs(S) + 1e-20)
+        
+        
+        S = librosa.feature.mfcc(
+            raw,
+            sr=samplerate,
+            n_mfcc=n_mfcc
+        )
+        
+        for i in range(0,2):
+               S = np.concatenate((S,S),axis=1)
+        
+        S_max = S.max()
+        S_min = S.min()
+        S -= S_min
+        S /= (S_max - S_min) # 0..1
+        S -= 0.5
+        S *= 2.0 # -1 .. 1
+
+        result = []
+        
+        for idx in range(0, S.shape[1]-window_length, overlap_length):
+            
+            result.append(S[:, idx : idx+window_length])
+        
+        return result
 
 
 for f in tqdm(fnames):
    sample_count += len(get_spectra_frames(f))
-   frames = np.array(get_spectra_frames(f))
    
    
 
@@ -137,9 +149,9 @@ for f in tqdm(fnames):
 #%% dsfdsfds
 
     
-shape_memmap = (sample_count, hop_length+1, window_length)
+shape_memmap = (sample_count, n_mfcc, window_length)
 
-mmap_name = 'train_mini_data'
+mmap_name = 'train_mini_data5'
 
 mmap = np.memmap(mmap_path + mmap_name + '.mmap', dtype=np.float32, mode='w+', shape=shape_memmap)
 

@@ -120,7 +120,7 @@ class ResNetBottleNeck(nn.Module):
                 kernel_size = kernel_size
             ),
             
-            nn.Dropout(0.1),
+            #nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=out_channels)
 
             
@@ -160,11 +160,11 @@ class Model(nn.Module):
             nn.Conv2d(in_channels = 1, out_channels = 16, 
                 kernel_size = args.kernel_size, 
                 padding = args.padding, stride=args.stride),
-            nn.Dropout(0.1),
+            #nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=16),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
-            #torch.nn.Dropout(0.1)
+      
         )
         
         self.resBlock1 = ResNetBlock(in_channels=16, kernel_size = 3)
@@ -176,7 +176,7 @@ class Model(nn.Module):
             nn.Conv2d(in_channels=24, out_channels=64,
                 kernel_size=args.kernel_size,
                 padding=args.padding, stride=args.stride),
-            nn.Dropout(0.2),
+            #nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1)
@@ -187,9 +187,9 @@ class Model(nn.Module):
 
         self.layer3 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, 
-                kernel_size=args.kernel_size,
+                kernel_size=round(args.kernel_size/2),
                 padding=args.padding, stride=args.stride),
-            nn.Dropout(0.3),
+            #nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1)
@@ -200,9 +200,9 @@ class Model(nn.Module):
         
         self.layer4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256,
-                      kernel_size=args.kernel_size,
+                      kernel_size=round(args.kernel_size/3),
                       padding=args.padding, stride=args.stride),
-            nn.Dropout(0.4),
+            #nn.Dropout(0.1),
             nn.BatchNorm2d(num_features=256),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=1, stride=1)
@@ -214,7 +214,7 @@ class Model(nn.Module):
         
         self.lin_layer1 = nn.Sequential(
             nn.Linear(in_features=256,out_features=128),
-            nn.Dropout(0.2),
+            #nn.Dropout(0.1),
             nn.BatchNorm1d(num_features=128),
             nn.ReLU()
 
@@ -222,7 +222,7 @@ class Model(nn.Module):
         
         self.lin_layer2 = nn.Sequential(
             nn.Linear(in_features=128,out_features=args.classes_amount),
-            nn.Dropout(0.1),
+            #nn.Dropout(0.1),
             nn.BatchNorm1d(num_features=args.classes_amount),
             nn.ReLU()
             #torch.nn.Dropout(0.1)
