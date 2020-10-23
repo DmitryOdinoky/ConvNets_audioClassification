@@ -54,7 +54,7 @@ class Model(nn.Module):
     def __init__(self, args):
         super(Model, self).__init__()
 
-        self.backbone_model: ResNet = torchvision.models.resnet18(pretrained=True)
+        self.backbone_model: ResNet = torchvision.models.resnet18(pretrained=False)
         
                 
         self.features = torch.nn.Sequential(
@@ -65,13 +65,13 @@ class Model(nn.Module):
 
 
             self.backbone_model.layer1,
-            nn.Dropout(0.8),
+            # nn.Dropout(0.8),
             self.backbone_model.layer2,
-            nn.Dropout(0.8),
+            # nn.Dropout(0.8),
             self.backbone_model.layer3,
-            nn.Dropout(0.8),
+            # nn.Dropout(0.8),
             self.backbone_model.layer4,
-            nn.Dropout(0.8)
+            # nn.Dropout(0.8)
 
           
         )
@@ -80,7 +80,7 @@ class Model(nn.Module):
         
         self.lin_layer1 = nn.Sequential(
             nn.Linear(in_features=self.backbone_model.fc.in_features,out_features=args.classes_amount),
-            nn.Dropout(0.8),
+            # nn.Dropout(0.8),
             nn.BatchNorm1d(num_features=args.classes_amount),
             nn.ReLU()
 
